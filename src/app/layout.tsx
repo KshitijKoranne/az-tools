@@ -25,28 +25,7 @@ export default function RootLayout({
         src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
         strategy="afterInteractive"
       />
-      <Script id="buy-me-coffee-script" strategy="afterInteractive">
-        {`
-          if (typeof window !== 'undefined') {
-            window.onload = function() {
-              if (document.getElementById('bmc-container')) {
-                var btn = document.createElement('script');
-                btn.type = 'text/javascript';
-                btn.setAttribute('data-name', 'bmc-button');
-                btn.setAttribute('data-slug', 'kshitijkorz');
-                btn.setAttribute('data-color', '#BD5FFF');
-                btn.setAttribute('data-emoji', '');
-                btn.setAttribute('data-font', 'Cookie');
-                btn.setAttribute('data-text', 'Buy me a coffee');
-                btn.setAttribute('data-outline-color', '#000000');
-                btn.setAttribute('data-font-color', '#ffffff');
-                btn.setAttribute('data-coffee-color', '#FFDD00');
-                document.getElementById('bmc-container').appendChild(btn);
-              }
-            }
-          }
-        `}
-      </Script>
+
       <body className={inter.className}>
         <Providers>
           {children}
