@@ -22,26 +22,31 @@ export function MobileNav() {
           <span className="text-xs">Home</span>
         </Link>
         <Link
-          href="/download"
+          href="/#tools-section"
           className="flex flex-col items-center justify-center"
         >
           <Button
             variant="ghost"
             size="icon"
-            className={`h-12 w-12 ${pathname === "/download" ? "text-primary" : "text-muted-foreground"}`}
+            className={`h-12 w-12 text-muted-foreground`}
           >
             <Grid className="h-6 w-6" />
           </Button>
-          <span className="text-xs">Download</span>
+          <span className="text-xs">Tools</span>
         </Link>
-        <Link
-          href="/search"
-          className="flex flex-col items-center justify-center"
-        >
+        <Link href="/#" className="flex flex-col items-center justify-center">
           <Button
             variant="ghost"
             size="icon"
-            className={`h-12 w-12 ${pathname === "/search" ? "text-primary" : "text-muted-foreground"}`}
+            className={`h-12 w-12 text-muted-foreground`}
+            onClick={() => {
+              const searchInput = document.querySelector(
+                'input[type="search"]',
+              ) as HTMLInputElement;
+              if (searchInput) {
+                searchInput.focus();
+              }
+            }}
           >
             <Search className="h-6 w-6" />
           </Button>

@@ -43,12 +43,23 @@ export default function QrGeneratorPage() {
   const downloadQR = () => {
     if (!qrUrl) return;
 
-    const a = document.createElement("a");
-    a.href = qrUrl;
-    a.download = "qrcode.png";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    // Fetch the image from the URL and convert to blob for download
+    fetch(qrUrl)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "qrcode.png";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      })
+      .catch((error) => {
+        console.error("Error downloading QR code:", error);
+        alert("Error downloading QR code");
+      });
   };
 
   return (

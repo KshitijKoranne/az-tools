@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Copy, RefreshCw, Shield } from "lucide-react";
+import { Copy, Download, RefreshCw, Shield } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function PasswordGeneratorPage() {
@@ -88,6 +88,23 @@ export default function PasswordGeneratorPage() {
     navigator.clipboard.writeText(password);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const downloadPassword = () => {
+    if (!password) return;
+
+    // Create a text file with the password
+    const blob = new Blob([`Your secure password: ${password}`], {
+      type: "text/plain",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "secure-password.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -220,10 +237,23 @@ export default function PasswordGeneratorPage() {
               </div>
             </div>
 
-            <Button onClick={generatePassword} className="w-full gap-2">
-              <Shield className="h-4 w-4" />
-              Generate New Password
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button onClick={generatePassword} className="w-full gap-2">
+                <Shield className="h-4 w-4" />
+                Generate New Password
+              </Button>
+
+              {password && (
+                <Button
+                  variant="outline"
+                  onClick={downloadPassword}
+                  className="w-full gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download Password
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="border rounded-lg p-6 max-w-2xl mx-auto">

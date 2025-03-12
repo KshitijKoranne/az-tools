@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import Head from "next/head";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,12 +21,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <Script src="https://api.tempolabs.ai/proxy-asset?url=https://storage.googleapis.com/tempo-public-assets/error-handling.js" />
-      <Script
-        src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
-        strategy="afterInteractive"
-      />
-
+      <head>
+        <Script src="https://api.tempolabs.ai/proxy-asset?url=https://storage.googleapis.com/tempo-public-assets/error-handling.js" />
+        <Script
+          src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className={inter.className}>
         <Providers>
           {children}

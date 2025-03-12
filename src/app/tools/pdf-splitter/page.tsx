@@ -8,6 +8,9 @@ import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 import { File, Upload, X } from "lucide-react";
 import { useState } from "react";
+import { PDFDocument } from "pdf-lib";
+import { saveAs } from "file-saver";
+import * as JSZip from "jszip";
 
 export default function PDFSplitterPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -15,14 +18,27 @@ export default function PDFSplitterPage() {
   const [splitting, setSplitting] = useState(false);
   const [split, setSplit] = useState(false);
   const [totalPages, setTotalPages] = useState<number | null>(null);
+  const [splitPdfs, setSplitPdfs] = useState<
+    { name: string; data: Uint8Array }[]
+  >([]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
       setSplit(false);
-      // In a real implementation, we would use a PDF library to get the total pages
-      // For demo purposes, we'll set a random number
-      setTotalPages(Math.floor(Math.random() * 20) + 5);
+      setSplitPdfs([]);
+
+      try {
+        // Get the total number of pages in the PDF
+        const arrayBuffer = await selectedFile.arrayBuffer();
+        const pdfDoc = await PDFDocument.load(arrayBuffer);
+        setTotalPages(pdfDoc.getPageCount());
+      } catch (error) {
+        console.error("Error loading PDF:", error);
+        alert("Error loading PDF. Please make sure it is a valid PDF file.");
+        setFile(null);
+      }
     }
   };
 
@@ -30,21 +46,129 @@ export default function PDFSplitterPage() {
     setFile(null);
     setTotalPages(null);
     setSplit(false);
+    setSplitPdfs([]);
+  };
+
+  const parsePageRanges = (rangesStr: string, maxPages: number): number[][] => {
+    const ranges: number[][] = [];
+
+    // Split by comma and process each range
+    const parts = rangesStr.split(",").map((part) => part.trim());
+
+    for (const part of parts) {
+      if (part.includes("-")) {
+        // Handle range like "1-3"
+        const [start, end] = part.split("-").map((num) => parseInt(num.trim()));
+
+        if (
+          isNaN(start) ||
+          isNaN(end) ||
+          start < 1 ||
+          end > maxPages ||
+          start > end
+        ) {
+          continue; // Skip invalid ranges
+        }
+
+        ranges.push(
+          Array.from({ length: end - start + 1 }, (_, i) => start + i - 1),
+        );
+      } else {
+        // Handle single page like "5"
+        const pageNum = parseInt(part);
+
+        if (isNaN(pageNum) || pageNum < 1 || pageNum > maxPages) {
+          continue; // Skip invalid page numbers
+        }
+
+        ranges.push([pageNum - 1]); // Convert to 0-based index
+      }
+    }
+
+    return ranges;
   };
 
   const splitPDF = async () => {
+    if (!file || !pageRanges || !totalPages) return;
+
     setSplitting(true);
-    // In a real implementation, we would use a library like pdf-lib
-    // to split the PDF on the client side
-    setTimeout(() => {
-      setSplitting(false);
+    try {
+      // Parse the page ranges
+      const ranges = parsePageRanges(pageRanges, totalPages);
+
+      if (ranges.length === 0) {
+        alert("No valid page ranges specified.");
+        setSplitting(false);
+        return;
+      }
+
+      // Load the PDF document
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(arrayBuffer);
+
+      const splitResults: { name: string; data: Uint8Array }[] = [];
+
+      // Create a new PDF for each range
+      for (let i = 0; i < ranges.length; i++) {
+        const range = ranges[i];
+        const newPdf = await PDFDocument.create();
+
+        // Copy the specified pages
+        const copiedPages = await newPdf.copyPages(pdfDoc, range);
+        copiedPages.forEach((page) => newPdf.addPage(page));
+
+        // Save the new PDF
+        const pdfBytes = await newPdf.save();
+
+        // Create a name for this split PDF
+        const rangeText =
+          range.length === 1
+            ? `page-${range[0] + 1}`
+            : `pages-${range[0] + 1}-${range[range.length - 1] + 1}`;
+
+        const fileName = `${file.name.replace(".pdf", "")}_${rangeText}.pdf`;
+
+        splitResults.push({
+          name: fileName,
+          data: pdfBytes,
+        });
+      }
+
+      setSplitPdfs(splitResults);
       setSplit(true);
-    }, 2000);
+    } catch (error) {
+      console.error("Error splitting PDF:", error);
+      alert("Error splitting PDF. Please try again with valid page ranges.");
+    } finally {
+      setSplitting(false);
+    }
   };
 
-  const downloadSplitPDFs = () => {
-    // In a real implementation, this would download the split PDFs
-    alert("In a real implementation, this would download the split PDFs");
+  const downloadSplitPDFs = async () => {
+    if (splitPdfs.length === 0) return;
+
+    if (splitPdfs.length === 1) {
+      // If there's only one PDF, download it directly
+      const blob = new Blob([splitPdfs[0].data], { type: "application/pdf" });
+      saveAs(blob, splitPdfs[0].name);
+    } else {
+      // If there are multiple PDFs, create a ZIP file
+      const zip = new JSZip();
+
+      // Add each PDF to the ZIP file
+      splitPdfs.forEach((pdf) => {
+        zip.file(pdf.name, pdf.data);
+      });
+
+      // Generate the ZIP file
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+
+      // Download the ZIP file
+      const zipName = file
+        ? `${file.name.replace(".pdf", "")}_split.zip`
+        : "split_pdfs.zip";
+      saveAs(zipBlob, zipName);
+    }
   };
 
   return (
@@ -152,10 +276,23 @@ export default function PDFSplitterPage() {
                   onClick={downloadSplitPDFs}
                   className="w-full sm:w-auto"
                 >
-                  Download Split PDFs
+                  Download Split PDFs {splitPdfs.length > 1 ? "(ZIP)" : ""}
                 </Button>
               )}
             </div>
+
+            {split && splitPdfs.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-sm font-medium mb-2">
+                  Split PDFs ({splitPdfs.length})
+                </h3>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  {splitPdfs.map((pdf, index) => (
+                    <li key={index}>{pdf.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           <div className="border rounded-lg p-6">
@@ -169,6 +306,7 @@ export default function PDFSplitterPage() {
               <li>Click the "Split PDF" button to process the file.</li>
               <li>
                 Once processing is complete, download your split PDF documents.
+                Multiple PDFs will be packaged in a ZIP file.
               </li>
             </ol>
           </div>

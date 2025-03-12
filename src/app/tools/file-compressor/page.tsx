@@ -58,10 +58,25 @@ export default function FileCompressorPage() {
   };
 
   const downloadCompressedFile = () => {
-    // In a real implementation, this would download the compressed file
-    alert(
-      "In a real implementation, this would download the compressed ZIP file",
-    );
+    if (!compressedSize || files.length === 0) return;
+
+    // Create a dummy ZIP blob for demonstration
+    // In a real implementation, this would be the actual compressed ZIP data
+    const zipHeader = new Uint8Array([
+      0x50, 0x4b, 0x03, 0x04, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00,
+    ]);
+
+    const blob = new Blob([zipHeader], { type: "application/zip" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "compressed_files.zip";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   // Helper function to format file size

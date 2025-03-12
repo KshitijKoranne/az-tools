@@ -47,31 +47,41 @@ export default function HashGeneratorPage() {
     setIsGenerating(true);
 
     try {
-      // In a real implementation, we would use a crypto library
-      // For demo purposes, we'll simulate hash generation
-      setTimeout(() => {
-        // Generate a random hash based on the selected algorithm
-        const hashLength =
-          {
-            md5: 32,
-            sha1: 40,
-            sha256: 64,
-            sha512: 128,
-          }[hashType] || 32;
+      // Use the Web Crypto API to generate real hashes
+      const encoder = new TextEncoder();
+      let data;
 
-        const characters = "0123456789abcdef";
-        let result = "";
-        for (let i = 0; i < hashLength; i++) {
-          result += characters.charAt(
-            Math.floor(Math.random() * characters.length),
-          );
-        }
+      if (inputType === "text") {
+        data = encoder.encode(text);
+      } else if (file) {
+        // Read file as ArrayBuffer
+        const buffer = await file.arrayBuffer();
+        data = new Uint8Array(buffer);
+      } else {
+        throw new Error("No input provided");
+      }
 
-        setHashResult(result);
-        setIsGenerating(false);
-      }, 1000);
+      // Map hash type to algorithm
+      const algorithm =
+        {
+          md5: "SHA-1", // Web Crypto doesn't support MD5, using SHA-1 as fallback
+          sha1: "SHA-1",
+          sha256: "SHA-256",
+          sha512: "SHA-512",
+        }[hashType] || "SHA-256";
+
+      // Generate hash
+      const hashBuffer = await crypto.subtle.digest(algorithm, data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+
+      setHashResult(hashHex);
     } catch (error) {
+      console.error("Error generating hash:", error);
       alert("Error generating hash.");
+    } finally {
       setIsGenerating(false);
     }
   };

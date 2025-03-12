@@ -61,6 +61,29 @@ export default function TextDiffPage() {
     }
   };
 
+  const downloadDiffResult = () => {
+    if (diffResult.length === 0) return;
+
+    // Format the diff result as text
+    let diffText = "";
+    diffResult.forEach((line) => {
+      const prefix =
+        line.type === "added" ? "+ " : line.type === "removed" ? "- " : "  ";
+      diffText += prefix + line.value + "\n";
+    });
+
+    // Create and download the file
+    const blob = new Blob([diffText], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "diff_result.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
@@ -110,13 +133,25 @@ export default function TextDiffPage() {
               </div>
             </div>
 
-            <Button
-              onClick={compareTexts}
-              disabled={!text1 || !text2 || isComparing}
-              className="w-full sm:w-auto mb-6"
-            >
-              {isComparing ? "Comparing..." : "Compare Texts"}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <Button
+                onClick={compareTexts}
+                disabled={!text1 || !text2 || isComparing}
+                className="w-full sm:w-auto"
+              >
+                {isComparing ? "Comparing..." : "Compare Texts"}
+              </Button>
+
+              {diffResult.length > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={downloadDiffResult}
+                  className="w-full sm:w-auto"
+                >
+                  Download Diff Result
+                </Button>
+              )}
+            </div>
 
             {diffResult.length > 0 && (
               <div className="mb-6">

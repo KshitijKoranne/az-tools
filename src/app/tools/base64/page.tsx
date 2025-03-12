@@ -80,16 +80,28 @@ export default function Base64Page() {
   const decodeToFile = () => {
     setIsProcessing(true);
     try {
-      // For demo purposes, we'll just show a message
-      // In a real implementation, we would convert the base64 to a file
-      setTimeout(() => {
-        alert(
-          "In a real implementation, this would decode the Base64 string to a file.",
-        );
-        setIsProcessing(false);
-      }, 1000);
+      // Convert base64 to binary data
+      const byteCharacters = atob(inputText);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+
+      // Create blob and download
+      const blob = new Blob([byteArray]);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "decoded_file";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      setIsProcessing(false);
     } catch (error) {
-      alert("Error decoding to file.");
+      alert("Error decoding to file. Make sure it's valid Base64.");
       setIsProcessing(false);
     }
   };

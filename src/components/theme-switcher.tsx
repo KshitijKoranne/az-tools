@@ -21,37 +21,41 @@ const ThemeSwitcher = () => {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return null;
-  }
-
   const ICON_SIZE = 16;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size={"sm"}>
-          {theme === "light" ? (
-            <Sun
-              key="light"
-              size={ICON_SIZE}
-              className={"text-muted-foreground"}
-            />
-          ) : theme === "dark" ? (
-            <Moon
-              key="dark"
-              size={ICON_SIZE}
-              className={"text-muted-foreground"}
-            />
-          ) : theme === "colorful" ? (
-            <Palette
-              key="colorful"
-              size={ICON_SIZE}
-              className={"text-muted-foreground"}
-            />
+          {mounted ? (
+            theme === "light" ? (
+              <Sun
+                key="light"
+                size={ICON_SIZE}
+                className={"text-muted-foreground"}
+              />
+            ) : theme === "dark" ? (
+              <Moon
+                key="dark"
+                size={ICON_SIZE}
+                className={"text-muted-foreground"}
+              />
+            ) : theme === "colorful" ? (
+              <Palette
+                key="colorful"
+                size={ICON_SIZE}
+                className={"text-muted-foreground"}
+              />
+            ) : (
+              <Laptop
+                key="system"
+                size={ICON_SIZE}
+                className={"text-muted-foreground"}
+              />
+            )
           ) : (
             <Laptop
-              key="system"
+              key="default"
               size={ICON_SIZE}
               className={"text-muted-foreground"}
             />
@@ -60,7 +64,7 @@ const ThemeSwitcher = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-content" align="start">
         <DropdownMenuRadioGroup
-          value={theme}
+          value={theme || "system"}
           onValueChange={(e) => setTheme(e)}
         >
           <DropdownMenuRadioItem className="flex gap-2" value="light">

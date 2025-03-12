@@ -7,37 +7,75 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { File, Upload, X } from "lucide-react";
 import { useState } from "react";
+import { PDFDocument } from "pdf-lib";
+import { saveAs } from "file-saver";
 
 export default function PDFMergerPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [merging, setMerging] = useState(false);
   const [merged, setMerged] = useState(false);
+  const [mergedPdfBytes, setMergedPdfBytes] = useState<Uint8Array | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setFiles(Array.from(e.target.files));
       setMerged(false);
+      setMergedPdfBytes(null);
     }
   };
 
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index));
     setMerged(false);
+    setMergedPdfBytes(null);
   };
 
   const mergePDFs = async () => {
+    if (files.length < 2) return;
+
     setMerging(true);
-    // In a real implementation, we would use a library like pdf-lib
-    // to merge the PDFs on the client side
-    setTimeout(() => {
-      setMerging(false);
+    try {
+      // Create a new PDF document
+      const mergedPdf = await PDFDocument.create();
+
+      // Process each PDF file
+      for (const file of files) {
+        // Convert file to ArrayBuffer
+        const fileBuffer = await file.arrayBuffer();
+
+        // Load the PDF document
+        const pdfDoc = await PDFDocument.load(fileBuffer);
+
+        // Copy all pages from the source document to the merged document
+        const copiedPages = await mergedPdf.copyPages(
+          pdfDoc,
+          pdfDoc.getPageIndices(),
+        );
+        copiedPages.forEach((page) => {
+          mergedPdf.addPage(page);
+        });
+      }
+
+      // Serialize the merged PDF to bytes
+      const mergedPdfBytes = await mergedPdf.save();
+      setMergedPdfBytes(mergedPdfBytes);
       setMerged(true);
-    }, 2000);
+    } catch (error) {
+      console.error("Error merging PDFs:", error);
+      alert("Error merging PDFs. Please try again with valid PDF files.");
+    } finally {
+      setMerging(false);
+    }
   };
 
   const downloadMergedPDF = () => {
-    // In a real implementation, this would download the merged PDF
-    alert("In a real implementation, this would download the merged PDF");
+    if (!mergedPdfBytes) return;
+
+    // Create a blob from the PDF bytes
+    const blob = new Blob([mergedPdfBytes], { type: "application/pdf" });
+
+    // Use file-saver to save the file
+    saveAs(blob, "merged.pdf");
   };
 
   return (
@@ -140,8 +178,7 @@ export default function PDFMergerPage() {
             <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
               <li>Upload two or more PDF files using the upload area above.</li>
               <li>
-                Arrange the files in the order you want them to appear in the
-                final document (drag and drop to reorder).
+                The files will be merged in the order they appear in the list.
               </li>
               <li>Click the "Merge PDFs" button to combine the files.</li>
               <li>

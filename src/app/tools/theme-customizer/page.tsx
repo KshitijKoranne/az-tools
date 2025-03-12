@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Palette, Check, RefreshCw } from "lucide-react";
+import { Palette, Check, RefreshCw, Download } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function ThemeCustomizerPage() {
@@ -59,6 +59,58 @@ export default function ThemeCustomizerPage() {
     // For demo purposes, we'll just show a success message
     setThemeApplied(true);
     setTimeout(() => setThemeApplied(false), 3000);
+  };
+
+  const downloadTheme = () => {
+    // Create a CSS file with the theme variables
+    const cssContent = `:root {
+  --primary-color: ${primaryColor};
+  --secondary-color: ${secondaryColor};
+  --accent-color: ${accentColor};
+  --background-color: ${backgroundColor};
+  --text-color: ${textColor};
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.primary {
+  color: var(--primary-color);
+}
+
+.secondary {
+  color: var(--secondary-color);
+}
+
+.accent {
+  color: var(--accent-color);
+}
+
+.bg-primary {
+  background-color: var(--primary-color);
+}
+
+.bg-secondary {
+  background-color: var(--secondary-color);
+}
+
+.bg-accent {
+  background-color: var(--accent-color);
+}
+`;
+
+    // Create and download the file
+    const blob = new Blob([cssContent], { type: "text/css" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "custom-theme.css";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const applyPresetTheme = (theme: (typeof presetThemes)[0]) => {
@@ -236,7 +288,7 @@ export default function ThemeCustomizerPage() {
                       </div>
                     </div>
 
-                    <div className="mt-6 flex gap-4">
+                    <div className="mt-6 flex flex-col sm:flex-row gap-4">
                       <Button onClick={applyTheme} className="gap-2">
                         <Palette className="h-4 w-4" />
                         Apply Theme
@@ -248,6 +300,14 @@ export default function ThemeCustomizerPage() {
                       >
                         <RefreshCw className="h-4 w-4" />
                         Random Theme
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={downloadTheme}
+                        className="gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        Download CSS
                       </Button>
                     </div>
 

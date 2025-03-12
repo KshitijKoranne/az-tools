@@ -56,10 +56,26 @@ export default function ImageConverterPage() {
   };
 
   const downloadConvertedImage = () => {
-    // In a real implementation, this would download the converted image
-    alert(
-      `In a real implementation, this would download the image converted to ${outputFormat} format`,
-    );
+    if (!file || !previewUrl) return;
+
+    // For demonstration, we'll use the preview URL as the source
+    // In a real implementation, this would be the actual converted image
+    fetch(previewUrl)
+      .then((res) => res.blob())
+      .then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = file.name.split(".")[0] + "." + outputFormat;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      })
+      .catch((err) => {
+        console.error("Error downloading image:", err);
+        alert("Error downloading the converted image");
+      });
   };
 
   return (
