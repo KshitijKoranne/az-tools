@@ -154,13 +154,17 @@ const colorNames: Record<string, string> = {
 export default function ColorNameFinderPage() {
   const [color, setColor] = useState("#3b82f6");
   const [colorName, setColorName] = useState("");
-  const [nearestColors, setNearestColors] = useState<{hex: string, name: string, distance: number}[]>([]);
+  const [nearestColors, setNearestColors] = useState<
+    { hex: string; name: string; distance: number }[]
+  >([]);
   const [copied, setCopied] = useState<string | null>(null);
   const [eyeDropperSupported, setEyeDropperSupported] = useState(false);
 
   // Check if EyeDropper API is supported
   useEffect(() => {
-    setEyeDropperSupported(typeof window !== 'undefined' && 'EyeDropper' in window);
+    setEyeDropperSupported(
+      typeof window !== "undefined" && "EyeDropper" in window,
+    );
   }, []);
 
   // Find color name when color changes
@@ -172,25 +176,25 @@ export default function ColorNameFinderPage() {
   const findColorName = (hexColor: string) => {
     // Normalize hex color
     const normalizedHex = hexColor.toUpperCase();
-    
+
     // Check if exact match exists
     if (colorNames[normalizedHex]) {
       setColorName(colorNames[normalizedHex]);
       setNearestColors([]);
       return;
     }
-    
+
     // Find nearest colors
-    const distances: {hex: string, name: string, distance: number}[] = [];
-    
+    const distances: { hex: string; name: string; distance: number }[] = [];
+
     for (const [hex, name] of Object.entries(colorNames)) {
       const distance = calculateColorDistance(normalizedHex, hex);
       distances.push({ hex, name, distance });
     }
-    
+
     // Sort by distance
     distances.sort((a, b) => a.distance - b.distance);
-    
+
     // Get the closest match and nearest colors
     if (distances.length > 0) {
       setColorName(`${distances[0].name} (closest match)`);
@@ -205,11 +209,11 @@ export default function ColorNameFinderPage() {
   const calculateColorDistance = (hex1: string, hex2: string) => {
     const rgb1 = hexToRgb(hex1);
     const rgb2 = hexToRgb(hex2);
-    
+
     return Math.sqrt(
       Math.pow(rgb1.r - rgb2.r, 2) +
-      Math.pow(rgb1.g - rgb2.g, 2) +
-      Math.pow(rgb1.b - rgb2.b, 2)
+        Math.pow(rgb1.g - rgb2.g, 2) +
+        Math.pow(rgb1.b - rgb2.b, 2),
     );
   };
 
@@ -228,7 +232,9 @@ export default function ColorNameFinderPage() {
 
   // Generate a random color
   const generateRandomColor = () => {
-    const randomHex = `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0")}`;
+    const randomHex = `#${Math.floor(Math.random() * 16777215)
+      .toString(16)
+      .padStart(6, "0")}`;
     setColor(randomHex);
   };
 
@@ -247,4 +253,235 @@ export default function ColorNameFinderPage() {
   };
 
   // Copy a color or name to clipboard
-  const copyToClipboard = (text: string) =>
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(text);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      <Header />
+      <main className="flex-1 py-8">
+        <Container>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Color Name Finder</h1>
+            <p className="text-muted-foreground">
+              Find the name of any color and discover similar colors.
+            </p>
+          </div>
+
+          <div className="border rounded-lg p-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <div className="mb-6">
+                  <label
+                    htmlFor="color-input"
+                    className="block text-sm font-medium mb-2"
+                  >
+                    Color (Hex Code)
+                  </label>
+                  <div className="flex gap-2">
+                    <div className="flex-1 flex">
+                      <div
+                        className="w-10 h-10 rounded-l-md border-y border-l"
+                        style={{ backgroundColor: color }}
+                      ></div>
+                      <Input
+                        id="color-input"
+                        type="text"
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                        className="rounded-l-none"
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={generateRandomColor}
+                      className="px-3"
+                      title="Generate random color"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                    </Button>
+                    {eyeDropperSupported && (
+                      <Button
+                        variant="outline"
+                        onClick={useEyeDropper}
+                        className="px-3"
+                        title="Pick color from screen"
+                      >
+                        <EyeDropper className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-2">
+                    Color Name
+                  </label>
+                  <div className="p-4 bg-muted/30 rounded-md flex justify-between items-center">
+                    <span className="font-medium">{colorName}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyToClipboard(colorName)}
+                      className="h-8 px-2 text-xs"
+                    >
+                      <Copy className="h-3 w-3 mr-1" />
+                      {copied === colorName ? "Copied!" : "Copy"}
+                    </Button>
+                  </div>
+                </div>
+
+                {nearestColors.length > 0 && (
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium mb-2">
+                      Similar Colors
+                    </label>
+                    <div className="space-y-2">
+                      {nearestColors.map((c, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-2 bg-muted/10 rounded-md hover:bg-muted/20 transition-colors"
+                        >
+                          <div className="flex items-center">
+                            <div
+                              className="w-8 h-8 rounded-md mr-3"
+                              style={{ backgroundColor: c.hex }}
+                            ></div>
+                            <div>
+                              <div className="font-medium text-sm">
+                                {c.name}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {c.hex}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setColor(c.hex)}
+                              className="h-7 px-2 text-xs"
+                            >
+                              Use
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyToClipboard(c.hex)}
+                              className="h-7 px-2 text-xs"
+                            >
+                              <Copy className="h-3 w-3" />
+                              {copied === c.hex ? "Copied!" : ""}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-2">
+                    Color Preview
+                  </label>
+                  <div className="space-y-4">
+                    <div
+                      className="w-full h-40 rounded-md border"
+                      style={{ backgroundColor: color }}
+                    ></div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div
+                        className="h-20 rounded-md flex items-center justify-center font-medium text-white"
+                        style={{ backgroundColor: color }}
+                      >
+                        White Text
+                      </div>
+                      <div
+                        className="h-20 rounded-md flex items-center justify-center font-medium text-black"
+                        style={{ backgroundColor: color }}
+                      >
+                        Black Text
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-2">
+                    Color Values
+                  </label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-muted/30 rounded-md">
+                      <div className="text-xs text-muted-foreground mb-1">
+                        HEX
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="font-mono">{color}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(color)}
+                          className="h-6 w-6 p-0"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="p-3 bg-muted/30 rounded-md">
+                      <div className="text-xs text-muted-foreground mb-1">
+                        RGB
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="font-mono">
+                          {Object.values(hexToRgb(color)).join(", ")}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            copyToClipboard(
+                              `rgb(${Object.values(hexToRgb(color)).join(", ")})`,
+                            )
+                          }
+                          className="h-6 w-6 p-0"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="border rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">How to use</h2>
+            <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
+              <li>
+                Enter a hex color code (e.g., #3b82f6) in the input field.
+              </li>
+              <li>Use the random button to generate a random color.</li>
+              {eyeDropperSupported && (
+                <li>
+                  Use the eyedropper tool to pick a color from anywhere on your
+                  screen.
+                </li>
+              )}
+              <li>View the color name and similar colors.</li>
+              <li>Copy color values to use in your projects.</li>
+            </ol>
+          </div>
+        </Container>
+      </main>
+      <Footer />
+      <MobileNav />
+    </div>
+  );
+}
