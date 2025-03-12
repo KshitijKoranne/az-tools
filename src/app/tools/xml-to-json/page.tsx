@@ -51,20 +51,20 @@ export default function XmlToJsonPage() {
     try {
       // Simple XML to JSON conversion for demo purposes
       // In a real implementation, we would use a library like xml2js
-      
+
       // Create a DOMParser to parse the XML
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-      
+
       // Check for parsing errors
-      const parserError = xmlDoc.querySelector('parsererror');
+      const parserError = xmlDoc.querySelector("parsererror");
       if (parserError) {
         throw new Error("XML parsing error: " + parserError.textContent);
       }
-      
+
       // Convert XML to JSON
       const jsonObj = xmlToJson(xmlDoc);
-      
+
       // Format JSON with indentation
       const jsonString = JSON.stringify(jsonObj, null, 2);
       setJsonPreview(jsonString);
@@ -82,7 +82,8 @@ export default function XmlToJsonPage() {
     // Create the return object
     let obj: any = {};
 
-    if (xml.nodeType === 1) { // element
+    if (xml.nodeType === 1) {
+      // element
       // Process attributes
       if (xml.attributes && xml.attributes.length > 0) {
         obj["@attributes"] = {};
@@ -91,7 +92,8 @@ export default function XmlToJsonPage() {
           obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
         }
       }
-    } else if (xml.nodeType === 3) { // text
+    } else if (xml.nodeType === 3) {
+      // text
       obj = xml.nodeValue?.trim();
       return obj;
     }
@@ -151,7 +153,8 @@ export default function XmlToJsonPage() {
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">XML to JSON Converter</h1>
             <p className="text-muted-foreground">
-              Convert XML data to JSON format for easier processing in JavaScript applications.
+              Convert XML data to JSON format for easier processing in
+              JavaScript applications.
             </p>
           </div>
 
@@ -269,3 +272,33 @@ export default function XmlToJsonPage() {
                   Download JSON
                 </Button>
               )}
+            </div>
+          </div>
+
+          <div className="border rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">How to use</h2>
+            <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
+              <li>Upload an XML file or paste XML data in the input area.</li>
+              <li>Click the "Convert to JSON" button to process the data.</li>
+              <li>
+                Review the JSON preview to ensure the conversion is correct.
+              </li>
+              <li>
+                Click the "Download JSON" button to save the converted file.
+              </li>
+            </ol>
+            <div className="mt-4 p-4 bg-muted/30 rounded-md">
+              <p className="text-sm text-muted-foreground">
+                <strong>Note:</strong> This converter handles basic XML elements
+                and attributes. For complex XML structures, some manual
+                adjustments may be needed.
+              </p>
+            </div>
+          </div>
+        </Container>
+      </main>
+      <Footer />
+      <MobileNav />
+    </div>
+  );
+}
