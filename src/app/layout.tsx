@@ -1,10 +1,9 @@
 import { TempoInit } from "@/components/tempo-init";
 import { Providers } from "@/app/providers";
-import type { Metadata } from "next";
+import { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
-import Head from "next/head";
 
 const inter = Inter({ subsets: ["latin"] });
 

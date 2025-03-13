@@ -6,6 +6,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Copy, Image, Upload, X } from "lucide-react";
+import { Palette } from "@/components/ui/palette";
 import { useState, useRef, useEffect } from "react";
 
 interface ExtractedColor {
