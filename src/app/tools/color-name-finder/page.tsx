@@ -6,7 +6,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
-import { Copy, Palette, RefreshCw } from "lucide-react";
+import { Copy, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
 
 // Color name database - a small subset for demonstration
