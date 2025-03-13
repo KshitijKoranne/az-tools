@@ -10,7 +10,7 @@ import { File, Upload, X } from "lucide-react";
 import { useState } from "react";
 import { PDFDocument } from "pdf-lib";
 import { saveAs } from "file-saver";
-import * as JSZip from "jszip";
+import JSZip from "jszip";
 
 export default function PDFSplitterPage() {
   const [file, setFile] = useState<File | null>(null);

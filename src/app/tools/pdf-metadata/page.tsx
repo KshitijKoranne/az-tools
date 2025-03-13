@@ -109,7 +109,7 @@ export default function PDFMetadataPage() {
       pdfDoc.setTitle(metadata.title);
       pdfDoc.setAuthor(metadata.author);
       pdfDoc.setSubject(metadata.subject);
-      pdfDoc.setKeywords([metadata.keywords]);
+      pdfDoc.setKeywords(metadata.keywords);
       pdfDoc.setCreator(metadata.creator);
       pdfDoc.setProducer(metadata.producer);
 

@@ -1,5 +1,6 @@
 import { ToolCard } from "@/components/tool-card";
 import { Container } from "@/components/ui/container";
+import AnimatedOutlinedBlock from "./animated-outlined-block";
 import {
   FileText,
   Image,
@@ -365,10 +366,13 @@ export function ToolGrid() {
       <Container>
         {toolCategories.map((category, index) => (
           <div key={index} className="mb-12">
-            <div className="flex items-center mb-6">
-              <div className="h-1 w-8 bg-primary rounded mr-3"></div>
+            <AnimatedOutlinedBlock
+              className="mb-6 inline-block"
+              background="var(--background)"
+              highlight="var(--primary)"
+            >
               <h2 className="text-2xl font-bold">{category.title}</h2>
-            </div>
+            </AnimatedOutlinedBlock>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {category.tools.map((tool, toolIndex) => (
                 <ToolCard

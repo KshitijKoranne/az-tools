@@ -29,7 +29,8 @@ export default function PDFToImagePage() {
       try {
         // Get the total number of pages in the PDF
         const arrayBuffer = await selectedFile.arrayBuffer();
-        // @ts-ignore - Using PDFDocument which might not be properly imported
+        // Using dynamic import for PDFDocument to avoid type errors
+        const { PDFDocument } = await import("pdf-lib");
         const pdfDoc = await PDFDocument.load(arrayBuffer);
         const pageCount = pdfDoc.getPageCount();
         setTotalPages(pageCount);
