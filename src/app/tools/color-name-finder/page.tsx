@@ -6,7 +6,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
-import { Copy, EyeDropper, Palette, RefreshCw } from "lucide-react";
+import { Copy, Palette, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
 
 // Color name database - a small subset for demonstration
@@ -310,7 +310,24 @@ export default function ColorNameFinderPage() {
                         className="px-3"
                         title="Pick color from screen"
                       >
-                        <EyeDropper className="h-4 w-4" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="h-4 w-4"
+                        >
+                          <path d="m2 22 1-1h3l9-9"></path>
+                          <path d="M3 21v-3l9-9"></path>
+                          <path d="m15 6 3.5-3.5a2.12 2.12 0 0 1 3 3L18 9"></path>
+                          <path d="m15 6-6 6"></path>
+                          <path d="m16 16 6 6"></path>
+                        </svg>
                       </Button>
                     )}
                   </div>
