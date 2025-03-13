@@ -18,6 +18,12 @@ export default function ThemeCustomizerPage() {
   const [textColor, setTextColor] = useState("#111827");
   const [activeTab, setActiveTab] = useState("custom");
   const [themeApplied, setThemeApplied] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // useEffect only runs on the client, so now we can safely show the UI
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const presetThemes = [
     {
@@ -55,6 +61,7 @@ export default function ThemeCustomizerPage() {
   ];
 
   const applyTheme = () => {
+    if (!mounted) return;
     // In a real implementation, this would apply the theme to the application
     // For demo purposes, we'll just show a success message
     setThemeApplied(true);
@@ -62,6 +69,7 @@ export default function ThemeCustomizerPage() {
   };
 
   const downloadTheme = () => {
+    if (!mounted) return;
     // Create a CSS file with the theme variables
     const cssContent = `:root {
   --primary-color: ${primaryColor};
@@ -123,6 +131,7 @@ body {
   };
 
   const generateRandomTheme = () => {
+    if (!mounted) return;
     // Generate random colors
     const randomHex = () => {
       return `#${Math.floor(Math.random() * 16777215)

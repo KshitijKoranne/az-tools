@@ -85,10 +85,11 @@ export default function XmlToJsonPage() {
     if (xml.nodeType === 1) {
       // element
       // Process attributes
-      if (xml.attributes && xml.attributes.length > 0) {
+      const element = xml as Element;
+      if (element.attributes && element.attributes.length > 0) {
         obj["@attributes"] = {};
-        for (let i = 0; i < xml.attributes.length; i++) {
-          const attribute = xml.attributes[i];
+        for (let i = 0; i < element.attributes.length; i++) {
+          const attribute = element.attributes[i];
           obj["@attributes"][attribute.nodeName] = attribute.nodeValue;
         }
       }
