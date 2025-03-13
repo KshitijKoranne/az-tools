@@ -5,7 +5,7 @@ import { Header } from "@/components/header";
 import { MobileNav } from "@/components/mobile-nav";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Copy, Image, Upload, X } from "lucide-react";
+import { Copy, ImageIcon, Upload, X } from "lucide-react";
 import { Palette } from "@/components/ui/palette";
 import { useState, useRef, useEffect } from "react";
 
@@ -310,7 +310,7 @@ export default function ColorExtractorPage() {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-64 border rounded-md bg-muted/10">
-                    <Image className="w-12 h-12 mb-4 text-muted-foreground" />
+                    <ImageIcon className="w-12 h-12 mb-4 text-muted-foreground" />
                     <p className="text-muted-foreground text-center">
                       Upload an image or enter a URL to extract colors
                     </p>

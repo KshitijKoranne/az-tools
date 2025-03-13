@@ -6,7 +6,7 @@ import { MobileNav } from "@/components/mobile-nav";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
-import { Eye, Image, Upload, X } from "lucide-react";
+import { Eye, ImageIcon, Upload, X } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 type ColorBlindnessType =
@@ -288,7 +288,7 @@ export default function ColorBlindnessPage() {
                     </div>
                   ) : (
                     <div className="border rounded-md p-6 flex flex-col items-center justify-center h-64 bg-muted/10">
-                      <Image className="w-12 h-12 mb-4 text-muted-foreground" />
+                      <ImageIcon className="w-12 h-12 mb-4 text-muted-foreground" />
                       <p className="text-muted-foreground text-center">
                         Upload an image or enter a URL to see how it appears to
                         people with color blindness

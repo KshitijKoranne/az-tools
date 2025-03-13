@@ -6,9 +6,8 @@ import { MobileNav } from "@/components/mobile-nav";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Slider } from "@/components/ui/slider";
-import { File, Image, Upload, X } from "lucide-react";
-import { useState } from "react";
-import { PDFDocument } from "pdf-lib";
+import { File, ImageIcon, Upload, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 
 export default function PDFToImagePage() {
   const [file, setFile] = useState<File | null>(null);

@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Image, Upload, X } from "lucide-react";
+import { ImageIcon, Upload, X } from "lucide-react";
 import { useState } from "react";
 
 export default function ImageConverterPage() {
@@ -141,7 +141,7 @@ export default function ImageConverterPage() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between p-3 bg-muted/30 rounded-md mb-4">
                       <div className="flex items-center">
-                        <Image className="w-5 h-5 mr-2 text-muted-foreground" />
+                        <ImageIcon className="w-5 h-5 mr-2 text-muted-foreground" />
                         <span className="text-sm truncate max-w-[200px] sm:max-w-xs">
                           {file.name}
                         </span>
