@@ -91,7 +91,7 @@ export default function HtmlToMarkdownPage() {
           let index = 1;
           return content.replace(
             /<li[^>]*>(.*?)<\/li>/gi,
-            function (match, item) {
+            function (match: string, item: string) {
               return `${index++}. ${item}\n`;
             },
           );
