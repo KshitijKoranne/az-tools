@@ -162,7 +162,7 @@ export function Header() {
             >
               <Button
                 variant="outline"
-                size="md"
+                size="sm"
                 className="gap-2 whitespace-nowrap"
               >
                 <Coffee className="h-4 w-4" />
