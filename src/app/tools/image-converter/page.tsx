@@ -21,14 +21,15 @@ export default function ImageConverterPage() {
   const [converting, setConverting] = useState(false);
   const [converted, setConverted] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [convertedBlob, setConvertedBlob] = useState<Blob | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
       setConverted(false);
+      setConvertedBlob(null);
 
-      // Create a preview URL for the image
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
@@ -43,39 +44,67 @@ export default function ImageConverterPage() {
     setFile(null);
     setPreviewUrl(null);
     setConverted(false);
+    setConvertedBlob(null);
   };
 
   const convertImage = async () => {
+    if (!file || !previewUrl) return;
+
     setConverting(true);
-    // In a real implementation, we would use a library to convert the image
-    // For demo purposes, we'll simulate conversion
-    setTimeout(() => {
-      setConverting(false);
+
+    try {
+      // Load the image
+      const img = new Image();
+      img.src = previewUrl;
+
+      await new Promise((resolve) => (img.onload = resolve));
+
+      // Create a canvas to draw the image
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        throw new Error("Canvas context not supported");
+      }
+
+      // Draw the image on the canvas
+      ctx.drawImage(img, 0, 0);
+
+      // Determine MIME type based on output format
+      const mimeType = `image/${outputFormat === "jpg" ? "jpeg" : outputFormat}`;
+
+      // Convert canvas to blob
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob(
+          (blob) => resolve(blob as Blob),
+          mimeType,
+          outputFormat === "jpg" ? 0.9 : 1.0, // Quality for JPEG
+        );
+      });
+
+      setConvertedBlob(blob);
       setConverted(true);
-    }, 2000);
+    } catch (error) {
+      console.error("Error converting image:", error);
+      alert("Error converting the image");
+    } finally {
+      setConverting(false);
+    }
   };
 
   const downloadConvertedImage = () => {
-    if (!file || !previewUrl) return;
+    if (!convertedBlob || !file) return;
 
-    // For demonstration, we'll use the preview URL as the source
-    // In a real implementation, this would be the actual converted image
-    fetch(previewUrl)
-      .then((res) => res.blob())
-      .then((blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = file.name.split(".")[0] + "." + outputFormat;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      })
-      .catch((err) => {
-        console.error("Error downloading image:", err);
-        alert("Error downloading the converted image");
-      });
+    const url = URL.createObjectURL(convertedBlob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name.split(".")[0] + "." + outputFormat;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return (

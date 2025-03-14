@@ -22,10 +22,11 @@ export default function CurrencyConverterPage() {
   const [toCurrency, setToCurrency] = useState<string>("EUR");
   const [result, setResult] = useState<string>("");
   const [isConverting, setIsConverting] = useState(false);
-  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>(
-    {},
-  );
+  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({});
   const [lastUpdated, setLastUpdated] = useState<string>("");
+
+  const API_KEY = "PisPkiBzqbWNdYPBnBDaJ3HbSGYCjcdM";
+  const BASE_URL = "https://api.currencybeacon.com/v1/latest";
 
   const currencies = [
     { code: "USD", name: "US Dollar" },
@@ -44,31 +45,28 @@ export default function CurrencyConverterPage() {
     { code: "ZAR", name: "South African Rand" },
   ];
 
-  // Mock exchange rates (in a real app, these would come from an API)
   useEffect(() => {
-    // Simulate loading exchange rates
-    const mockRates: Record<string, number> = {
-      USD: 1,
-      EUR: 0.93,
-      GBP: 0.79,
-      JPY: 150.27,
-      AUD: 1.52,
-      CAD: 1.37,
-      CHF: 0.9,
-      CNY: 7.24,
-      INR: 83.12,
-      MXN: 16.73,
-      SGD: 1.34,
-      NZD: 1.64,
-      BRL: 5.05,
-      ZAR: 18.42,
+    const fetchExchangeRates = async () => {
+      try {
+        const response = await fetch(
+          `${BASE_URL}?api_key=${API_KEY}&base=USD`,
+        );
+        const data = await response.json();
+
+        if (data.response) {
+          setExchangeRates(data.response.rates);
+          setLastUpdated(new Date(data.response.timestamp * 1000).toLocaleString());
+          convertCurrency(); // Trigger initial conversion
+        } else {
+          throw new Error("Invalid API response");
+        }
+      } catch (error) {
+        console.error("Error fetching exchange rates:", error);
+        setResult("Error fetching rates");
+      }
     };
 
-    setExchangeRates(mockRates);
-    setLastUpdated(new Date().toLocaleString());
-
-    // Initial conversion
-    convertCurrency();
+    fetchExchangeRates();
   }, []);
 
   const convertCurrency = () => {
@@ -79,32 +77,28 @@ export default function CurrencyConverterPage() {
 
     setIsConverting(true);
 
-    // Simulate API delay
-    setTimeout(() => {
-      try {
-        const amountNum = parseFloat(amount);
-        const fromRate = exchangeRates[fromCurrency] || 1;
-        const toRate = exchangeRates[toCurrency] || 1;
+    try {
+      const amountNum = parseFloat(amount);
+      const fromRate = exchangeRates[fromCurrency] || 1;
+      const toRate = exchangeRates[toCurrency] || 1;
 
-        // Convert to USD first, then to target currency
-        const valueInUSD = amountNum / fromRate;
-        const convertedValue = valueInUSD * toRate;
+      // Convert to USD first, then to target currency
+      const valueInUSD = amountNum / fromRate;
+      const convertedValue = valueInUSD * toRate;
 
-        // Format the result
-        const formattedResult = new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: toCurrency,
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 4,
-        }).format(convertedValue);
+      const formattedResult = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: toCurrency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4,
+      }).format(convertedValue);
 
-        setResult(formattedResult);
-      } catch (error) {
-        setResult("Conversion error");
-      } finally {
-        setIsConverting(false);
-      }
-    }, 500);
+      setResult(formattedResult);
+    } catch (error) {
+      setResult("Conversion error");
+    } finally {
+      setIsConverting(false);
+    }
   };
 
   const swapCurrencies = () => {
@@ -113,10 +107,10 @@ export default function CurrencyConverterPage() {
   };
 
   useEffect(() => {
-    if (amount && fromCurrency && toCurrency) {
+    if (amount && fromCurrency && toCurrency && Object.keys(exchangeRates).length > 0) {
       convertCurrency();
     }
-  }, [amount, fromCurrency, toCurrency]);
+  }, [amount, fromCurrency, toCurrency, exchangeRates]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -226,7 +220,7 @@ export default function CurrencyConverterPage() {
             </div>
 
             <div className="mt-6 text-xs text-muted-foreground text-right">
-              Exchange rates last updated: {lastUpdated} (Demo data)
+              Exchange rates last updated: {lastUpdated}
             </div>
           </div>
 
@@ -239,14 +233,6 @@ export default function CurrencyConverterPage() {
               <li>The converted amount will appear automatically.</li>
               <li>Use the swap button to quickly reverse the conversion.</li>
             </ol>
-            <div className="mt-4 p-4 bg-muted/30 rounded-md">
-              <p className="text-sm text-muted-foreground">
-                <strong>Note:</strong> This is a demo version using static
-                exchange rates. In a production environment, this would connect
-                to a real-time currency exchange rate API for accurate
-                conversions.
-              </p>
-            </div>
           </div>
         </Container>
       </main>

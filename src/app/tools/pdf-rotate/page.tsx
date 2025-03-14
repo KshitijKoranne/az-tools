@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { File, RotateCcw, RotateCw, Upload, X } from "lucide-react";
 import { useState } from "react";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, degrees } from "pdf-lib";
 import { saveAs } from "file-saver";
 
 export default function PDFRotatePage() {
@@ -30,13 +30,11 @@ export default function PDFRotatePage() {
       setRotatedPdfBytes(null);
 
       try {
-        // Get the total number of pages in the PDF
         const arrayBuffer = await selectedFile.arrayBuffer();
         const pdfDoc = await PDFDocument.load(arrayBuffer);
         const pageCount = pdfDoc.getPageCount();
         setTotalPages(pageCount);
 
-        // Initialize rotations to 0 for all pages
         const initialRotations: Record<number, number> = {};
         for (let i = 1; i <= pageCount; i++) {
           initialRotations[i] = 0;
@@ -90,14 +88,20 @@ export default function PDFRotatePage() {
 
     setProcessing(true);
     try {
-      // Load the PDF document
       const arrayBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(arrayBuffer);
 
-      // In a real implementation, we would rotate each page according to pageRotations
-      // For demo purposes, we'll just return the original PDF
-      const pdfBytes = await pdfDoc.save();
+      // Apply rotations to each page
+      const pages = pdfDoc.getPages();
+      pages.forEach((page, index) => {
+        const pageNum = index + 1; // Page numbers start at 1 in UI
+        const rotation = pageRotations[pageNum] || 0;
+        if (rotation !== 0) {
+          page.setRotation(degrees(rotation));
+        }
+      });
 
+      const pdfBytes = await pdfDoc.save();
       setRotatedPdfBytes(pdfBytes);
       setProcessed(true);
     } catch (error) {
@@ -113,10 +117,7 @@ export default function PDFRotatePage() {
   const downloadRotatedPDF = () => {
     if (!rotatedPdfBytes || !file) return;
 
-    // Create a blob from the PDF bytes
     const blob = new Blob([rotatedPdfBytes], { type: "application/pdf" });
-
-    // Use file-saver to save the file
     saveAs(blob, `rotated_${file.name}`);
   };
 

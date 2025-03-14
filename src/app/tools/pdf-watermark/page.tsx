@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { File, Upload, X } from "lucide-react";
 import { useState } from "react";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, rgb, degrees, StandardFonts } from "pdf-lib";
 import { saveAs } from "file-saver";
 
 export default function PDFWatermarkPage() {
@@ -39,19 +39,42 @@ export default function PDFWatermarkPage() {
     setWatermarkedPdfBytes(null);
   };
 
+  const hexToRgb = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    return { r, g, b };
+  };
+
   const addWatermark = async () => {
-    if (!file) return;
+    if (!file || !watermarkText) return;
 
     setProcessing(true);
     try {
-      // Load the PDF document
       const arrayBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(arrayBuffer);
+      const pages = pdfDoc.getPages();
+      const { r, g, b } = hexToRgb(watermarkColor);
+      const font = await pdfDoc.embedStandardFont(StandardFonts.TimesRomanBold);
 
-      // In a real implementation, we would add the watermark to each page
-      // For demo purposes, we'll just return the original PDF
+      pages.forEach((page) => {
+        const { width, height } = page.getSize();
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        page.drawText(watermarkText, {
+          x: centerX,
+          y: centerY,
+          size: watermarkSize[0],
+          color: rgb(r, g, b),
+          opacity: watermarkOpacity[0] / 100,
+          rotate: degrees(watermarkAngle[0]),
+          font, // Use Times Roman Bold
+          lineHeight: watermarkSize[0] * 1.2,
+        });
+      });
+
       const pdfBytes = await pdfDoc.save();
-
       setWatermarkedPdfBytes(pdfBytes);
       setProcessed(true);
     } catch (error) {
@@ -67,10 +90,7 @@ export default function PDFWatermarkPage() {
   const downloadWatermarkedPDF = () => {
     if (!watermarkedPdfBytes || !file) return;
 
-    // Create a blob from the PDF bytes
     const blob = new Blob([watermarkedPdfBytes], { type: "application/pdf" });
-
-    // Use file-saver to save the file
     saveAs(blob, `watermarked_${file.name}`);
   };
 
@@ -244,7 +264,7 @@ export default function PDFWatermarkPage() {
                           opacity: watermarkOpacity[0] / 100,
                           fontSize: `${watermarkSize[0]}px`,
                           position: "absolute",
-                          fontFamily: "Arial, sans-serif",
+                          fontFamily: "Times New Roman, serif",
                           fontWeight: "bold",
                           userSelect: "none",
                           whiteSpace: "nowrap",

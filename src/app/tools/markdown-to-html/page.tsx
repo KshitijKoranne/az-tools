@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { FileText, Upload, X } from "lucide-react";
 import { useState } from "react";
+import { marked } from "marked";
 
 export default function MarkdownToHtmlPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -22,7 +23,6 @@ export default function MarkdownToHtmlPage() {
       setConverted(false);
       setHtmlOutput(null);
 
-      // Read the file content
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
@@ -49,35 +49,22 @@ export default function MarkdownToHtmlPage() {
   const convertMarkdownToHtml = async () => {
     setConverting(true);
 
-    // Simple markdown to HTML conversion for demo purposes
-    // In a real implementation, we would use a library like marked or showdown
     try {
-      // Very basic markdown conversion
-      let html = markdownText
-        // Headers
-        .replace(/^# (.+)$/gm, "<h1>$1</h1>")
-        .replace(/^## (.+)$/gm, "<h2>$1</h2>")
-        .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-        // Bold
-        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-        // Italic
-        .replace(/\*(.+?)\*/g, "<em>$1</em>")
-        // Links
-        .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>')
-        // Lists
-        .replace(/^- (.+)$/gm, "<li>$1</li>")
-        // Paragraphs (simple approach)
-        .replace(/^(?!<[hl])(.+)$/gm, "<p>$1</p>");
+      if (!markdownText.trim()) {
+        throw new Error("No Markdown content provided");
+      }
 
-      // Wrap lists
-      html = html.replace(/(<li>.+<\/li>\n)+/g, (match) => {
-        return `<ul>\n${match}</ul>`;
+      // Ensure marked returns a string by awaiting it if necessary
+      const html = await marked(markdownText, {
+        gfm: true,
+        breaks: true,
       });
 
-      setHtmlOutput(html);
+      setHtmlOutput(html as string); // Type assertion since we know it's a string after await
       setConverted(true);
     } catch (error) {
-      alert("Error converting markdown to HTML.");
+      alert("Error converting Markdown to HTML.");
+      console.error(error);
     } finally {
       setConverting(false);
     }
@@ -86,7 +73,6 @@ export default function MarkdownToHtmlPage() {
   const downloadHtml = () => {
     if (!htmlOutput) return;
 
-    // Wrap with basic HTML document structure
     const fullHtml = `<!DOCTYPE html>
 <html>
 <head>

@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Slider } from "@/components/ui/slider";
 import { File, ImageIcon, Upload, X } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
+import { PDFDocument } from "pdf-lib"; // Still used for page counting
+import * as pdfjsLib from "pdfjs-dist"; // For rendering
+
+// Set the worker source for pdfjs-dist
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 export default function PDFToImagePage() {
   const [file, setFile] = useState<File | null>(null);
@@ -27,15 +32,10 @@ export default function PDFToImagePage() {
       setPreviewImages([]);
 
       try {
-        // Get the total number of pages in the PDF
         const arrayBuffer = await selectedFile.arrayBuffer();
-        // Using dynamic import for PDFDocument to avoid type errors
-        const { PDFDocument } = await import("pdf-lib");
         const pdfDoc = await PDFDocument.load(arrayBuffer);
         const pageCount = pdfDoc.getPageCount();
         setTotalPages(pageCount);
-
-        // By default, select all pages
         setSelectedPages(Array.from({ length: pageCount }, (_, i) => i + 1));
       } catch (error) {
         console.error("Error loading PDF:", error);
@@ -76,59 +76,35 @@ export default function PDFToImagePage() {
 
     setConverting(true);
     try {
-      // In a real implementation, we would use a PDF rendering library
-      // For demo purposes, we'll create placeholder images
-      const mockImages: string[] = [];
-
-      // Create a canvas to render PDF pages (in a real implementation)
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const images: string[] = [];
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
 
-      if (!ctx) {
-        throw new Error("Could not create canvas context");
-      }
+      if (!ctx) throw new Error("Could not create canvas context");
 
-      // Set canvas dimensions (this would be based on PDF page size in real implementation)
-      canvas.width = 800;
-      canvas.height = 1100;
-
-      // Create placeholder images for each selected page
       for (const pageNum of selectedPages) {
-        // In a real implementation, we would render the PDF page to the canvas
-        // For demo, we'll create colored rectangles with page numbers
-        ctx.fillStyle = "#f0f0f0";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 2 }); // Scale for better quality
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
 
-        // Add a border
-        ctx.strokeStyle = "#cccccc";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+        // Render the page to the canvas
+        await page.render({
+          canvasContext: ctx,
+          viewport,
+        }).promise;
 
-        // Add page number and file name
-        ctx.fillStyle = "#333333";
-        ctx.font = "bold 24px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(`Page ${pageNum}`, canvas.width / 2, 50);
-
-        ctx.font = "18px Arial";
-        ctx.fillText(file.name, canvas.width / 2, 80);
-
-        // Add PDF icon
-        ctx.fillStyle = "#e74c3c";
-        ctx.fillRect(canvas.width / 2 - 40, canvas.height / 2 - 50, 80, 100);
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 16px Arial";
-        ctx.fillText("PDF", canvas.width / 2, canvas.height / 2);
-
-        // Convert canvas to image data URL
+        // Convert to image
         const imageDataUrl = canvas.toDataURL(
-          `image/${imageFormat}`,
+          `image/${imageFormat === "jpg" ? "jpeg" : "png"}`,
           imageQuality[0] / 100,
         );
-        mockImages.push(imageDataUrl);
+        images.push(imageDataUrl);
       }
 
-      setPreviewImages(mockImages);
+      setPreviewImages(images);
       setConverted(true);
     } catch (error) {
       console.error("Error converting PDF to images:", error);
@@ -141,7 +117,6 @@ export default function PDFToImagePage() {
   const downloadImages = () => {
     if (previewImages.length === 0) return;
 
-    // Download each image
     previewImages.forEach((imageUrl, index) => {
       const pageNum = selectedPages[index];
       const link = document.createElement("a");
@@ -248,7 +223,11 @@ export default function PDFToImagePage() {
                       (pageNum) => (
                         <div
                           key={pageNum}
-                          className={`border rounded-md p-2 text-center cursor-pointer ${selectedPages.includes(pageNum) ? "bg-primary/10 border-primary" : "bg-muted/30"}`}
+                          className={`border rounded-md p-2 text-center cursor-pointer ${
+                            selectedPages.includes(pageNum)
+                              ? "bg-primary/10 border-primary"
+                              : "bg-muted/30"
+                          }`}
                           onClick={() => togglePageSelection(pageNum)}
                         >
                           {pageNum}

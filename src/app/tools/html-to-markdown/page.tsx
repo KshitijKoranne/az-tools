@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { FileText, Upload, X, Copy } from "lucide-react";
 import { useState } from "react";
+import TurndownService from "turndown";
 
 export default function HtmlToMarkdownPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -16,6 +17,12 @@ export default function HtmlToMarkdownPage() {
   const [markdownOutput, setMarkdownOutput] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const turndownService = new TurndownService({
+    headingStyle: "atx", // Use # for headings
+    bulletListMarker: "-", // Use - for unordered lists
+    codeBlockStyle: "fenced", // Use ``` for code blocks
+  });
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
@@ -23,7 +30,6 @@ export default function HtmlToMarkdownPage() {
       setConverted(false);
       setMarkdownOutput(null);
 
-      // Read the file content
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
@@ -50,79 +56,12 @@ export default function HtmlToMarkdownPage() {
   const convertHtmlToMarkdown = async () => {
     setConverting(true);
 
-    // Simple HTML to Markdown conversion for demo purposes
-    // In a real implementation, we would use a library like turndown
     try {
-      // Very basic HTML to Markdown conversion
-      let markdown = htmlText
-        // Headers
-        .replace(/<h1[^>]*>(.*?)<\/h1>/gi, "# $1\n\n")
-        .replace(/<h2[^>]*>(.*?)<\/h2>/gi, "## $1\n\n")
-        .replace(/<h3[^>]*>(.*?)<\/h3>/gi, "### $1\n\n")
-        .replace(/<h4[^>]*>(.*?)<\/h4>/gi, "#### $1\n\n")
-        .replace(/<h5[^>]*>(.*?)<\/h5>/gi, "##### $1\n\n")
-        .replace(/<h6[^>]*>(.*?)<\/h6>/gi, "###### $1\n\n")
+      if (!htmlText.trim()) {
+        throw new Error("No HTML content provided");
+      }
 
-        // Bold and Italic
-        .replace(/<strong[^>]*>(.*?)<\/strong>/gi, "**$1**")
-        .replace(/<b[^>]*>(.*?)<\/b>/gi, "**$1**")
-        .replace(/<em[^>]*>(.*?)<\/em>/gi, "*$1*")
-        .replace(/<i[^>]*>(.*?)<\/i>/gi, "*$1*")
-
-        // Links
-        .replace(/<a[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi, "[$2]($1)")
-
-        // Images
-        .replace(
-          /<img[^>]*src=["']([^"']*)["'][^>]*alt=["']([^"']*)["'][^>]*>/gi,
-          "![$2]($1)",
-        )
-        .replace(
-          /<img[^>]*alt=["']([^"']*)["'][^>]*src=["']([^"']*)["'][^>]*>/gi,
-          "![$1]($2)",
-        )
-        .replace(/<img[^>]*src=["']([^"']*)["'][^>]*>/gi, "![]($1)")
-
-        // Lists
-        .replace(/<ul[^>]*>([\s\S]*?)<\/ul>/gi, function (match, content) {
-          return content.replace(/<li[^>]*>(.*?)<\/li>/gi, "- $1\n");
-        })
-        .replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, function (match, content) {
-          let index = 1;
-          return content.replace(
-            /<li[^>]*>(.*?)<\/li>/gi,
-            function (match: string, item: string) {
-              return `${index++}. ${item}\n`;
-            },
-          );
-        })
-
-        // Paragraphs
-        .replace(/<p[^>]*>(.*?)<\/p>/gi, "$1\n\n")
-
-        // Line breaks
-        .replace(/<br[^>]*>/gi, "\n")
-
-        // Code blocks
-        .replace(
-          /<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi,
-          "```\n$1\n```\n\n",
-        )
-        .replace(/<code[^>]*>(.*?)<\/code>/gi, "`$1`")
-
-        // Blockquotes
-        .replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gi, "> $1\n\n")
-
-        // Horizontal rules
-        .replace(/<hr[^>]*>/gi, "---\n\n")
-
-        // Remove remaining HTML tags
-        .replace(/<[^>]*>/g, "")
-
-        // Fix extra newlines
-        .replace(/\n\s*\n\s*\n/g, "\n\n")
-        .trim();
-
+      const markdown = turndownService.turndown(htmlText);
       setMarkdownOutput(markdown);
       setConverted(true);
     } catch (error) {
@@ -307,14 +246,6 @@ export default function HtmlToMarkdownPage() {
               </li>
               <li>Copy the Markdown code or download it as a .md file.</li>
             </ol>
-            <div className="mt-4 p-4 bg-muted/30 rounded-md">
-              <p className="text-sm text-muted-foreground">
-                <strong>Note:</strong> This converter handles basic HTML
-                elements like headings, paragraphs, lists, links, and
-                formatting. For complex HTML with nested structures or specific
-                attributes, some manual adjustments may be needed.
-              </p>
-            </div>
           </div>
         </Container>
       </main>

@@ -8,6 +8,8 @@ import { Container } from "@/components/ui/container";
 import { Slider } from "@/components/ui/slider";
 import { FileArchive, Upload, X } from "lucide-react";
 import { useState } from "react";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 
 export default function FileCompressorPage() {
   const [files, setFiles] = useState<File[]>([]);
@@ -16,18 +18,19 @@ export default function FileCompressorPage() {
   const [compressionLevel, setCompressionLevel] = useState([50]);
   const [totalSize, setTotalSize] = useState<number>(0);
   const [compressedSize, setCompressedSize] = useState<number | null>(null);
+  const [compressedBlob, setCompressedBlob] = useState<Blob | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFiles = Array.from(e.target.files);
       setFiles(selectedFiles);
 
-      // Calculate total size
       const size = selectedFiles.reduce((total, file) => total + file.size, 0);
       setTotalSize(size);
 
       setCompressed(false);
       setCompressedSize(null);
+      setCompressedBlob(null);
     }
   };
 
@@ -37,49 +40,47 @@ export default function FileCompressorPage() {
     newFiles.splice(index, 1);
     setFiles(newFiles);
 
-    // Update total size
     setTotalSize(totalSize - removedFileSize);
-
     setCompressed(false);
     setCompressedSize(null);
+    setCompressedBlob(null);
   };
 
   const compressFiles = async () => {
+    if (files.length === 0) return;
+
     setCompressing(true);
-    // In a real implementation, we would use a library to compress the files
-    // For demo purposes, we'll simulate compression
-    setTimeout(() => {
-      // Simulate compression result based on compression level
-      const compressionRatio = 1 - compressionLevel[0] / 100;
-      setCompressedSize(Math.floor(totalSize * compressionRatio));
-      setCompressing(false);
-      setCompressed(true);
-    }, 2000);
+    const zip = new JSZip();
+
+    // Map compression level (10-90%) to JSZip's compression level (1-9)
+    const mappedCompressionLevel = Math.floor((compressionLevel[0] / 100) * 9) || 1;
+
+    // Add files to the ZIP
+    files.forEach((file) => {
+      zip.file(file.name, file);
+    });
+
+    // Generate the ZIP file
+    const zipBlob = await zip.generateAsync({
+      type: "blob",
+      compression: "DEFLATE",
+      compressionOptions: {
+        level: mappedCompressionLevel,
+      },
+    });
+
+    setCompressedSize(zipBlob.size);
+    setCompressedBlob(zipBlob);
+    setCompressing(false);
+    setCompressed(true);
   };
 
   const downloadCompressedFile = () => {
-    if (!compressedSize || files.length === 0) return;
+    if (!compressedBlob) return;
 
-    // Create a dummy ZIP blob for demonstration
-    // In a real implementation, this would be the actual compressed ZIP data
-    const zipHeader = new Uint8Array([
-      0x50, 0x4b, 0x03, 0x04, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00,
-    ]);
-
-    const blob = new Blob([zipHeader], { type: "application/zip" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "compressed_files.zip";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    saveAs(compressedBlob, "compressed_files.zip");
   };
 
-  // Helper function to format file size
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { FileJson, Upload, X } from "lucide-react";
 import { useState } from "react";
+import Papa from "papaparse";
 
 export default function CsvToJsonPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -22,7 +23,6 @@ export default function CsvToJsonPage() {
       setConverted(false);
       setJsonPreview(null);
 
-      // Read the file content
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
@@ -46,37 +46,27 @@ export default function CsvToJsonPage() {
     setJsonPreview(null);
   };
 
-  const convertCsvToJson = async () => {
+  const convertCsvToJson = async (e: React.MouseEvent<HTMLButtonElement>) => {
     setConverting(true);
     try {
-      // Simple CSV to JSON conversion for demo purposes
-      // In a real implementation, we would use a more robust library
-      const lines = csvText.split("\n").filter((line) => line.trim());
-      if (lines.length === 0) {
+      if (!csvText.trim()) {
         throw new Error("No data found in CSV");
       }
 
-      // Parse headers
-      const headers = lines[0]
-        .split(",")
-        .map((header) => header.trim().replace(/"/g, ""));
+      const result = Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        dynamicTyping: true,
+      });
 
-      // Parse data rows
-      const jsonData = [];
-      for (let i = 1; i < lines.length; i++) {
-        const values = parseCSVLine(lines[i]);
-        if (values.length !== headers.length) {
-          continue; // Skip malformed lines
-        }
-
-        const row: Record<string, string> = {};
-        for (let j = 0; j < headers.length; j++) {
-          row[headers[j]] = values[j];
-        }
-        jsonData.push(row);
+      if (result.errors.length > 0) {
+        throw new Error(
+          "Error parsing CSV: " +
+            result.errors.map((e) => e.message).join(", "),
+        );
       }
 
-      // Format JSON with indentation
+      const jsonData = result.data;
       const jsonString = JSON.stringify(jsonData, null, 2);
       setJsonPreview(jsonString);
       setConverted(true);
@@ -86,30 +76,6 @@ export default function CsvToJsonPage() {
     } finally {
       setConverting(false);
     }
-  };
-
-  // Helper function to parse CSV line handling quoted values
-  const parseCSVLine = (line: string): string[] => {
-    const result: string[] = [];
-    let current = "";
-    let inQuotes = false;
-
-    for (let i = 0; i < line.length; i++) {
-      const char = line[i];
-
-      if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === "," && !inQuotes) {
-        result.push(current.trim().replace(/"/g, ""));
-        current = "";
-      } else {
-        current += char;
-      }
-    }
-
-    // Add the last value
-    result.push(current.trim().replace(/"/g, ""));
-    return result;
   };
 
   const downloadJson = () => {

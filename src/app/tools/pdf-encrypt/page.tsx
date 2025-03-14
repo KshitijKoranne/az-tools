@@ -8,7 +8,7 @@ import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 import { File, Lock, Upload, X } from "lucide-react";
 import { useState } from "react";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument } from "pdf-lib-plus-encrypt";
 import { saveAs } from "file-saver";
 
 export default function PDFEncryptPage() {
@@ -39,6 +39,9 @@ export default function PDFEncryptPage() {
     setFile(null);
     setProcessed(false);
     setEncryptedPdfBytes(null);
+    setPassword("");
+    setConfirmPassword("");
+    setOwnerPassword("");
   };
 
   const encryptPDF = async () => {
@@ -51,14 +54,29 @@ export default function PDFEncryptPage() {
 
     setProcessing(true);
     try {
-      // Load the PDF document
       const arrayBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(arrayBuffer);
 
-      // In a real implementation, we would encrypt the PDF with the provided password
-      // For demo purposes, we'll just return the original PDF
-      const pdfBytes = await pdfDoc.save();
+      // Define permissions with explicit type narrowing
+      const permissions = {
+        printing: allowPrinting ? ("highResolution" as const) : undefined,
+        modifying: allowModifying,
+        copying: allowCopying,
+        annotating: true,
+        fillingForms: true,
+        contentAccessibility: true,
+        documentAssembly: allowModifying,
+      };
 
+      // Encrypt the PDF in-place
+      await pdfDoc.encrypt({
+        userPassword: password,
+        ownerPassword: useOwnerPassword ? ownerPassword : undefined,
+        permissions,
+      });
+
+      // Save the encrypted document
+      const pdfBytes = await pdfDoc.save();
       setEncryptedPdfBytes(pdfBytes);
       setProcessed(true);
     } catch (error) {
@@ -72,10 +90,7 @@ export default function PDFEncryptPage() {
   const downloadEncryptedPDF = () => {
     if (!encryptedPdfBytes || !file) return;
 
-    // Create a blob from the PDF bytes
     const blob = new Blob([encryptedPdfBytes], { type: "application/pdf" });
-
-    // Use file-saver to save the file
     saveAs(blob, `encrypted_${file.name}`);
   };
 

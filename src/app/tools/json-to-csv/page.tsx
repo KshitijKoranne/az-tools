@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { FileJson, Upload, X } from "lucide-react";
 import { useState } from "react";
+import Papa from "papaparse";
 
 export default function JsonToCsvPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -22,7 +23,6 @@ export default function JsonToCsvPage() {
       setConverted(false);
       setCsvPreview(null);
 
-      // Read the file content
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
@@ -49,48 +49,24 @@ export default function JsonToCsvPage() {
   const convertJsonToCsv = async () => {
     setConverting(true);
     try {
+      if (!jsonText.trim()) {
+        throw new Error("No JSON data provided");
+      }
+
       // Parse JSON
       const jsonData = JSON.parse(jsonText);
 
-      // Simple JSON to CSV conversion for demo purposes
-      // In a real implementation, we would use a more robust library
-      let csv = "";
-
-      // Handle array of objects
-      if (Array.isArray(jsonData) && jsonData.length > 0) {
-        // Get headers
-        const headers = Object.keys(jsonData[0]);
-        csv += headers.join(",") + "\n";
-
-        // Add rows
-        jsonData.forEach((item) => {
-          const row = headers.map((header) => {
-            const value = item[header];
-            // Handle string values with commas by wrapping in quotes
-            return typeof value === "string" && value.includes(",")
-              ? `"${value}"`
-              : value;
-          });
-          csv += row.join(",") + "\n";
-        });
-      } else {
-        // Handle single object
-        const headers = Object.keys(jsonData);
-        csv += headers.join(",") + "\n";
-
-        const row = headers.map((header) => {
-          const value = jsonData[header];
-          return typeof value === "string" && value.includes(",")
-            ? `"${value}"`
-            : value;
-        });
-        csv += row.join(",") + "\n";
-      }
+      // Convert to CSV using Papa Parse
+      const csv = Papa.unparse(jsonData, {
+        quotes: true, // Wrap all fields in quotes to handle commas
+        header: true, // Include headers if present
+      });
 
       setCsvPreview(csv);
       setConverted(true);
     } catch (error) {
       alert("Invalid JSON format. Please check your input.");
+      console.error(error);
     } finally {
       setConverting(false);
     }
@@ -183,12 +159,12 @@ export default function JsonToCsvPage() {
                 id="json-input"
                 rows={8}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                placeholder='{"name":"John","age":30,"city":"New York"}'
+                placeholder='[{"name":"John","age":30,"city":"New York"},{"name":"Jane","age":25,"city":"Los Angeles"}]'
                 value={jsonText}
                 onChange={handleTextChange}
               ></textarea>
               <p className="mt-1 text-xs text-muted-foreground">
-                Paste your JSON data or upload a file above.
+                Paste your JSON data or upload a file above. Array of objects is recommended for proper CSV structure.
               </p>
             </div>
 

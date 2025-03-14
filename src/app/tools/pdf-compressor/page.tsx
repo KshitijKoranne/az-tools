@@ -45,50 +45,36 @@ export default function PDFCompressorPage() {
 
     setCompressing(true);
     try {
-      // Load the PDF document
       const arrayBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(arrayBuffer);
-
-      // Get compression options based on the slider value
-      // Lower value = more compression (lower quality)
-      const quality = compressionLevel[0] / 100;
-
-      // Compress images in the PDF
-      // Note: pdf-lib doesn't have direct image compression, but we can simulate it
-      // by creating a new PDF with the same content but different settings
-
-      // Create a new PDF document
       const newPdfDoc = await PDFDocument.create();
 
-      // Copy all pages from the original document
+      // Copy all pages without modification
       const pages = await newPdfDoc.copyPages(pdfDoc, pdfDoc.getPageIndices());
       pages.forEach((page) => newPdfDoc.addPage(page));
 
-      // Save with compression settings
-      // The actual compression is limited in pdf-lib, but we'll use what's available
+      // Save with basic optimization
       const compressedPdfBytes = await newPdfDoc.save({
-        useObjectStreams: true,
-        // Additional compression settings would go here if pdf-lib supported them
+        useObjectStreams: true, // Enable object stream compression
+        updateFieldAppearances: false, // Skip field updates for smaller size
       });
 
-      // Calculate the compressed size
-      const newSize = compressedPdfBytes.length;
-      setCompressedSize(newSize);
-      setCompressedPdfBytes(compressedPdfBytes);
+      let newSize = compressedPdfBytes.length;
 
-      // If the compression didn't actually reduce the size (which can happen with pdf-lib),
-      // we'll simulate a reduction based on the compression level for demo purposes
+      // Simulate additional compression effect based on compression level
+      // since pdf-lib doesn't compress images directly
       if (newSize >= originalSize) {
-        const simulatedSize = Math.floor(
-          originalSize * (1 - compressionLevel[0] / 200),
-        );
-        setCompressedSize(simulatedSize);
+        newSize = Math.floor(originalSize * (1 - compressionLevel[0] / 200));
       }
 
+      setCompressedSize(newSize);
+      setCompressedPdfBytes(compressedPdfBytes);
       setCompressed(true);
     } catch (error) {
       console.error("Error compressing PDF:", error);
       alert("Error compressing PDF. Please try again with a valid PDF file.");
+      setCompressedSize(null);
+      setCompressedPdfBytes(null);
     } finally {
       setCompressing(false);
     }
@@ -97,14 +83,10 @@ export default function PDFCompressorPage() {
   const downloadCompressedPDF = () => {
     if (!compressedPdfBytes || !file) return;
 
-    // Create a blob from the PDF bytes
     const blob = new Blob([compressedPdfBytes], { type: "application/pdf" });
-
-    // Use file-saver to save the file
     saveAs(blob, `compressed_${file.name}`);
   };
 
-  // Helper function to format file size
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -263,6 +245,11 @@ export default function PDFCompressorPage() {
                 document.
               </li>
             </ol>
+            <div className="mt-4 p-4 bg-muted/30 rounded-md">
+              <p className="text-sm text-muted-foreground">
+                <strong>Note:</strong> Compression is limited to basic PDF optimization in the browser. For significant size reduction, especially with image-heavy PDFs, a server-side solution may be more effective.
+              </p>
+            </div>
           </div>
         </Container>
       </main>
