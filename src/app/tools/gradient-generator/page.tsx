@@ -8,7 +8,7 @@ import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Copy, Download, Palette, Plus, RefreshCw, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 type GradientType = "linear" | "radial" | "conic";
 type GradientStop = { color: string; position: number };
@@ -23,8 +23,7 @@ export default function GradientGeneratorPage() {
   const [copied, setCopied] = useState(false);
   const [cssCode, setCssCode] = useState("");
 
-  // Generate the gradient CSS
-  const generateGradientCSS = () => {
+  useEffect(() => {
     const sortedStops = [...stops].sort((a, b) => a.position - b.position);
     const stopsString = sortedStops
       .map((stop) => `${stop.color} ${stop.position}%`)
@@ -40,19 +39,19 @@ export default function GradientGeneratorPage() {
     }
 
     setCssCode(gradientCSS);
-    return gradientCSS;
+  }, [gradientType, angle, stops]);
+
+  const generateGradientCSS = () => {
+    return cssCode;
   };
 
-  // Add a new color stop
   const addColorStop = () => {
-    if (stops.length >= 5) return; // Limit to 5 stops
+    if (stops.length >= 5) return;
 
-    // Find a position between existing stops
     const positions = stops.map((stop) => stop.position);
-    let newPosition = 50; // Default to middle
+    let newPosition = 50;
 
     if (positions.length >= 2) {
-      // Find the largest gap between stops
       positions.sort((a, b) => a - b);
       let maxGap = 0;
       let gapPosition = 50;
@@ -68,7 +67,6 @@ export default function GradientGeneratorPage() {
       newPosition = Math.round(gapPosition);
     }
 
-    // Generate a random color
     const randomColor = `#${Math.floor(Math.random() * 16777215)
       .toString(16)
       .padStart(6, "0")}`;
@@ -76,15 +74,13 @@ export default function GradientGeneratorPage() {
     setStops([...stops, { color: randomColor, position: newPosition }]);
   };
 
-  // Remove a color stop
   const removeColorStop = (index: number) => {
-    if (stops.length <= 2) return; // Keep at least 2 stops
+    if (stops.length <= 2) return;
     const newStops = [...stops];
     newStops.splice(index, 1);
     setStops(newStops);
   };
 
-  // Update a color stop
   const updateColorStop = (
     index: number,
     field: "color" | "position",
@@ -99,7 +95,6 @@ export default function GradientGeneratorPage() {
     setStops(newStops);
   };
 
-  // Generate random gradient
   const generateRandomGradient = () => {
     const types: GradientType[] = ["linear", "radial", "conic"];
     const randomType = types[Math.floor(Math.random() * types.length)];
@@ -108,7 +103,7 @@ export default function GradientGeneratorPage() {
     const randomAngle = [Math.floor(Math.random() * 360)];
     setAngle(randomAngle);
 
-    const numStops = Math.floor(Math.random() * 3) + 2; // 2-4 stops
+    const numStops = Math.floor(Math.random() * 3) + 2;
     const newStops: GradientStop[] = [];
 
     for (let i = 0; i < numStops; i++) {
@@ -124,12 +119,10 @@ export default function GradientGeneratorPage() {
       newStops.push({ color, position });
     }
 
-    // Sort by position
     newStops.sort((a, b) => a.position - b.position);
     setStops(newStops);
   };
 
-  // Copy CSS to clipboard
   const copyToClipboard = () => {
     const css = generateGradientCSS();
     navigator.clipboard.writeText(css);
@@ -137,7 +130,6 @@ export default function GradientGeneratorPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Download as CSS file
   const downloadCSS = () => {
     const css = generateGradientCSS();
     const cssContent = `/* Gradient CSS */\n${css}\n\n/* For older browsers */\n.gradient {\n  ${css}\n}\n`;
@@ -153,7 +145,6 @@ export default function GradientGeneratorPage() {
     URL.revokeObjectURL(url);
   };
 
-  // Get the gradient style for preview
   const getGradientStyle = () => {
     const sortedStops = [...stops].sort((a, b) => a.position - b.position);
     const stopsString = sortedStops
