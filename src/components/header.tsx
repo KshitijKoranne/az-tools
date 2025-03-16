@@ -13,7 +13,7 @@ export function Header() {
     { title: string; href: string }[]
   >([]);
   const [showResults, setShowResults] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false); // New state for mobile
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   const tools = [
     // PDF Tools
@@ -45,7 +45,6 @@ export function Header() {
     { title: "Password Generator", href: "/tools/password-generator" },
     { title: "JWT Decoder", href: "/tools/jwt-decoder" },
     { title: "Regex Tester", href: "/tools/regex-tester" },
-    { title: "Cron Expression Generator", href: "/tools/cron-generator" },
     { title: "UUID Generator", href: "/tools/uuid-generator" },
     { title: "HTML Entity Encoder", href: "/tools/html-entity-encoder" },
 
@@ -87,10 +86,11 @@ export function Header() {
     }
   };
 
-  const toggleMobileSearch = () => {
+  const toggleMobileSearch = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault(); // Prevent default behavior that might interfere
     setIsMobileSearchOpen((prev) => !prev);
-    setShowResults(false); // Reset results when toggling
-    setSearchQuery(""); // Clear query on toggle
+    setShowResults(false);
+    setSearchQuery("");
   };
 
   return (
@@ -131,7 +131,7 @@ export function Header() {
               size="icon"
               className="md:hidden"
               onClick={toggleMobileSearch}
-              onTouchStart={toggleMobileSearch} // Ensure touch support
+              // Removed onTouchStart to avoid double-triggering
             >
               <Search className="h-5 w-5" />
             </Button>
