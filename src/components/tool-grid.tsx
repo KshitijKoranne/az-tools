@@ -206,27 +206,6 @@ const toolCategories: ToolCategory[] = [
         href: "/tools/regex-tester",
         color: "bg-green-500/10",
       },
-      {
-        title: "Cron Expression Generator",
-        description: "Create and validate cron expressions",
-        icon: Cpu,
-        href: "/tools/cron-generator",
-        color: "bg-green-500/10",
-      },
-      {
-        title: "UUID Generator",
-        description: "Generate random UUIDs/GUIDs",
-        icon: Cpu,
-        href: "/tools/uuid-generator",
-        color: "bg-green-500/10",
-      },
-      {
-        title: "HTML Entity Encoder",
-        description: "Convert characters to HTML entities",
-        icon: FileCode,
-        href: "/tools/html-entity-encoder",
-        color: "bg-green-500/10",
-      },
     ],
   },
   {
