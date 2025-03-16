@@ -111,70 +111,72 @@ export function ToolsDrawer() {
   }, [isDrawerOpen]);
 
   return (
-    <Drawer.Root
-      direction="left"
-      open={isDrawerOpen}
-      onOpenChange={setIsDrawerOpen}
-    >
-      <Drawer.Trigger asChild>
-        <Button
-          variant="outline"
-          size="icon"
-          className="fixed left-4 top-2 z-50 rounded-full border-2 border-primary/20 bg-background/80 backdrop-blur-sm transition-all hover:bg-primary/10 md:left-16 md:top-4"
-        >
-          <Menu className="h-5 w-5 text-primary" />
-        </Button>
-      </Drawer.Trigger>
-      <Drawer.Content className="fixed left-0 top-0 z-[60] h-screen w-72 bg-background/95 p-6 shadow-xl ring-1 ring-border backdrop-blur-md md:w-80 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 [-webkit-overflow-scrolling:touch]">
-        <div className="flex flex-col gap-6 min-h-[calc(100vh-3rem)]">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-foreground">Tool Categories</h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsDrawerOpen(false)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-          <div className="space-y-3 flex-1">
-            {toolCategories.map((category) => (
-              <div key={category.title}>
-                <button
-                  onClick={() => toggleCategory(category.title)}
-                  className="flex w-full items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-left text-sm font-semibold text-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <span className="flex items-center gap-2">
-                    <category.icon className="h-4 w-4 text-muted-foreground" />
-                    {category.title}
-                  </span>
-                  {openCategories.includes(category.title) ? (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+    <div className="hidden md:block"> {/* Hide on mobile, show on md and up */}
+      <Drawer.Root
+        direction="left"
+        open={isDrawerOpen}
+        onOpenChange={setIsDrawerOpen}
+      >
+        <Drawer.Trigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="fixed left-16 top-4 z-50 rounded-full border-2 border-primary/20 bg-background/80 backdrop-blur-sm transition-all hover:bg-primary/10"
+          >
+            <Menu className="h-5 w-5 text-primary" />
+          </Button>
+        </Drawer.Trigger>
+        <Drawer.Content className="fixed left-0 top-0 z-[60] h-screen w-72 bg-background/95 p-6 shadow-xl ring-1 ring-border backdrop-blur-md md:w-80 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
+          <div className="flex flex-col gap-6 min-h-[calc(100vh-3rem)]">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-foreground">Tool Categories</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsDrawerOpen(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            <div className="space-y-3 flex-1">
+              {toolCategories.map((category) => (
+                <div key={category.title}>
+                  <button
+                    onClick={() => toggleCategory(category.title)}
+                    className="flex w-full items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-left text-sm font-semibold text-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <span className="flex items-center gap-2">
+                      <category.icon className="h-4 w-4 text-muted-foreground" />
+                      {category.title}
+                    </span>
+                    {openCategories.includes(category.title) ? (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </button>
+                  {openCategories.includes(category.title) && (
+                    <ul className="mt-2 space-y-1 pl-6">
+                      {category.tools.map((tool) => (
+                        <li key={tool.title}>
+                          <Link
+                            href={tool.href}
+                            className="block rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                            onClick={() => setIsDrawerOpen(false)}
+                          >
+                            {tool.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
                   )}
-                </button>
-                {openCategories.includes(category.title) && (
-                  <ul className="mt-2 space-y-1 pl-6">
-                    {category.tools.map((tool) => (
-                      <li key={tool.title}>
-                        <Link
-                          href={tool.href}
-                          className="block rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                          onClick={() => setIsDrawerOpen(false)}
-                        >
-                          {tool.title}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </Drawer.Content>
-    </Drawer.Root>
+        </Drawer.Content>
+      </Drawer.Root>
+    </div>
   );
 }

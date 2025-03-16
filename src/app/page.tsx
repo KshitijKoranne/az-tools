@@ -5,7 +5,6 @@ import { MobileNav } from "@/components/mobile-nav";
 import { ToolGrid } from "@/components/tool-grid";
 import dynamic from "next/dynamic";
 
-// Explicitly import ToolsDrawer as a client component with SSR disabled
 const ToolsDrawer = dynamic(
   () => import("@/components/drawer").then((mod) => mod.ToolsDrawer),
   { ssr: false }
