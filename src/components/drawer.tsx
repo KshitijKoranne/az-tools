@@ -91,10 +91,9 @@ const toolCategories = [
 ];
 
 export function ToolsDrawer() {
-  const [openCategories, setOpenCategories] = useState<string[]>([]); // Array for multiple open categories
+  const [openCategories, setOpenCategories] = useState<string[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Toggle category: add/remove from openCategories array
   const toggleCategory = (category: string) => {
     setOpenCategories((prev) =>
       prev.includes(category)
@@ -103,12 +102,11 @@ export function ToolsDrawer() {
     );
   };
 
-  // Expand all categories when drawer opens
   useEffect(() => {
     if (isDrawerOpen) {
       setOpenCategories(toolCategories.map((cat) => cat.title));
     } else {
-      setOpenCategories([]); // Collapse all when closed
+      setOpenCategories([]);
     }
   }, [isDrawerOpen]);
 
@@ -127,8 +125,8 @@ export function ToolsDrawer() {
           <Menu className="h-5 w-5 text-primary" />
         </Button>
       </Drawer.Trigger>
-      <Drawer.Content className="fixed left-0 top-0 z-[60] h-full w-72 bg-background/95 p-6 shadow-xl ring-1 ring-border backdrop-blur-md md:w-80 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
-        <div className="flex flex-col gap-6">
+      <Drawer.Content className="fixed left-0 top-0 z-[60] h-screen w-72 bg-background/95 p-6 shadow-xl ring-1 ring-border backdrop-blur-md md:w-80 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900 [-webkit-overflow-scrolling:touch]">
+        <div className="flex flex-col gap-6 min-h-[calc(100vh-3rem)]">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-foreground">Tool Categories</h2>
             <Button
@@ -140,7 +138,7 @@ export function ToolsDrawer() {
               <X className="h-5 w-5" />
             </Button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-3 flex-1">
             {toolCategories.map((category) => (
               <div key={category.title}>
                 <button
