@@ -2,14 +2,24 @@
 
 import { Drawer } from "vaul";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronRight, Menu, X } from "lucide-react";
-import { useState } from "react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Menu,
+  X,
+  FileText,
+  Image,
+  Cpu,
+  Palette,
+  Calculator,
+} from "lucide-react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
-// Tool categories from tool-grid.tsx
 const toolCategories = [
   {
     title: "PDF Tools",
+    icon: FileText,
     tools: [
       { title: "PDF Merger", href: "/tools/pdf-merger" },
       { title: "PDF Splitter", href: "/tools/pdf-splitter" },
@@ -23,6 +33,7 @@ const toolCategories = [
   },
   {
     title: "Conversion Tools",
+    icon: Image,
     tools: [
       { title: "Image Converter", href: "/tools/image-converter" },
       { title: "JSON to CSV", href: "/tools/json-to-csv" },
@@ -37,6 +48,7 @@ const toolCategories = [
   },
   {
     title: "IT Tools",
+    icon: Cpu,
     tools: [
       { title: "Hash Generator", href: "/tools/hash-generator" },
       { title: "Base64 Encoder/Decoder", href: "/tools/base64" },
@@ -49,6 +61,7 @@ const toolCategories = [
   },
   {
     title: "Color Tools",
+    icon: Palette,
     tools: [
       { title: "Color Picker", href: "/tools/color-picker" },
       { title: "Color Palette Generator", href: "/tools/color-palette" },
@@ -63,6 +76,7 @@ const toolCategories = [
   },
   {
     title: "Utilities",
+    icon: Calculator,
     tools: [
       { title: "File Compressor", href: "/tools/file-compressor" },
       { title: "Calculator", href: "/tools/calculator" },
@@ -77,12 +91,26 @@ const toolCategories = [
 ];
 
 export function ToolsDrawer() {
-  const [openCategory, setOpenCategory] = useState<string | null>(null);
+  const [openCategories, setOpenCategories] = useState<string[]>([]); // Array for multiple open categories
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  // Toggle category: add/remove from openCategories array
   const toggleCategory = (category: string) => {
-    setOpenCategory(openCategory === category ? null : category);
+    setOpenCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category],
+    );
   };
+
+  // Expand all categories when drawer opens
+  useEffect(() => {
+    if (isDrawerOpen) {
+      setOpenCategories(toolCategories.map((cat) => cat.title));
+    } else {
+      setOpenCategories([]); // Collapse all when closed
+    }
+  }, [isDrawerOpen]);
 
   return (
     <Drawer.Root
@@ -94,12 +122,12 @@ export function ToolsDrawer() {
         <Button
           variant="outline"
           size="icon"
-          className="fixed left-4 top-2 z-50 rounded-full border-2 border-primary/20 bg-background/80 backdrop-blur-sm transition-all hover:bg-primary/10 md:left-6 md:top-2"
+          className="fixed left-4 top-2 z-50 rounded-full border-2 border-primary/20 bg-background/80 backdrop-blur-sm transition-all hover:bg-primary/10 md:left-16 md:top-4"
         >
           <Menu className="h-5 w-5 text-primary" />
         </Button>
       </Drawer.Trigger>
-      <Drawer.Content className="fixed left-0 top-0 z-50 h-full w-72 bg-background/95 p-6 shadow-xl ring-1 ring-border backdrop-blur-md md:w-80">
+      <Drawer.Content className="fixed left-0 top-0 z-[60] h-full w-72 bg-background/95 p-6 shadow-xl ring-1 ring-border backdrop-blur-md md:w-80 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-foreground">Tool Categories</h2>
@@ -119,15 +147,18 @@ export function ToolsDrawer() {
                   onClick={() => toggleCategory(category.title)}
                   className="flex w-full items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-left text-sm font-semibold text-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  {category.title}
-                  {openCategory === category.title ? (
+                  <span className="flex items-center gap-2">
+                    <category.icon className="h-4 w-4 text-muted-foreground" />
+                    {category.title}
+                  </span>
+                  {openCategories.includes(category.title) ? (
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   ) : (
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   )}
                 </button>
-                {openCategory === category.title && (
-                  <ul className="mt-2 space-y-1 pl-4">
+                {openCategories.includes(category.title) && (
+                  <ul className="mt-2 space-y-1 pl-6">
                     {category.tools.map((tool) => (
                       <li key={tool.title}>
                         <Link
