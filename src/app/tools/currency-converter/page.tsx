@@ -218,10 +218,7 @@ export default function CurrencyConverterPage() {
                 </Select>
               </div>
             </div>
-
-            <div className="mt-6 text-xs text-muted-foreground text-right">
-              Exchange rates last updated: {lastUpdated}
-            </div>
+            {/* Removed the exchange rate last updated sentence */}
           </div>
 
           <div className="border rounded-lg p-6 max-w-2xl mx-auto">

@@ -13,6 +13,7 @@ export function Header() {
     { title: string; href: string }[]
   >([]);
   const [showResults, setShowResults] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false); // New state for mobile
 
   const tools = [
     // PDF Tools
@@ -75,18 +76,21 @@ export function Header() {
     setSearchQuery(query);
 
     if (query.length > 1) {
-      // Search implementation
-
       const results = tools.filter((tool) =>
         tool.title.toLowerCase().includes(query.toLowerCase()),
       );
-
       setSearchResults(results);
       setShowResults(true);
     } else {
       setSearchResults([]);
       setShowResults(false);
     }
+  };
+
+  const toggleMobileSearch = () => {
+    setIsMobileSearchOpen((prev) => !prev);
+    setShowResults(false); // Reset results when toggling
+    setSearchQuery(""); // Clear query on toggle
   };
 
   return (
@@ -122,7 +126,13 @@ export function Header() {
             </Link>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="md:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={toggleMobileSearch}
+              onTouchStart={toggleMobileSearch} // Ensure touch support
+            >
               <Search className="h-5 w-5" />
             </Button>
             <div className="hidden md:flex md:w-full md:max-w-sm items-center gap-2 relative">
@@ -172,6 +182,40 @@ export function Header() {
             </a>
           </div>
         </div>
+        {isMobileSearchOpen && (
+          <div className="md:hidden pb-4">
+            <Container>
+              <div className="relative w-full">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="search"
+                  placeholder="Search tools..."
+                  className="w-full rounded-md border border-input bg-background py-2 pl-8 pr-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  onFocus={() =>
+                    searchResults.length > 0 && setShowResults(true)
+                  }
+                  onBlur={() => setTimeout(() => setShowResults(false), 200)}
+                  autoFocus
+                />
+                {showResults && searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 w-full mt-1 bg-background border rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                    {searchResults.map((result, index) => (
+                      <Link
+                        key={index}
+                        href={result.href}
+                        className="block px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors text-sm"
+                      >
+                        {result.title}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Container>
+          </div>
+        )}
       </Container>
     </header>
   );
