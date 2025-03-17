@@ -1,7 +1,6 @@
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { Hero } from "@/components/hero";
-import { MobileNav } from "@/components/mobile-nav";
 import { ToolGrid } from "@/components/tool-grid";
 import dynamic from "next/dynamic";
 
@@ -22,7 +21,7 @@ export default function Page() {
         </div>
       </main>
       <Footer />
-      <MobileNav />
+      {/* Removed <MobileNav /> */}
     </div>
   );
 }
