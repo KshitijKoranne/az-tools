@@ -3,7 +3,6 @@
 import { Container } from "@/components/ui/container";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
-import { MobileNav } from "@/components/mobile-nav";
 
 export default function PDFWatermarkPage() {
   return (
@@ -18,7 +17,6 @@ export default function PDFWatermarkPage() {
         </Container>
       </main>
       <Footer />
-      <MobileNav />
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
-import { MobileNav } from "@/components/mobile-nav";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Slider } from "@/components/ui/slider";
@@ -258,7 +257,6 @@ export default function FileCompressorPage() {
         </Container>
       </main>
       <Footer />
-      <MobileNav />
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
-import { MobileNav } from "@/components/mobile-nav";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
@@ -243,7 +242,6 @@ export default function HashGeneratorPage() {
         </Container>
       </main>
       <Footer />
-      <MobileNav />
     </div>
   );
 }
