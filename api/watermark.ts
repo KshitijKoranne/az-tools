@@ -1,14 +1,14 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import formidable, { Fields, Files } from "formidable";
-import FormData from "form-data";
-import fs from "fs";
+import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib";
+import fs from "fs/promises";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Parse incoming multipart form data
+  // Parse form data
   const form = formidable({ multiples: false });
   let fields: Fields, files: Files;
   try {
@@ -29,130 +29,88 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const watermark_text = fields.watermark_text?.[0];
-  const opacity = fields.opacity?.[0] || "30"; // Default if missing
-  const font_color = fields.font_color?.[0] || "FF0000"; // Default red
-  const font_size = fields.font_size?.[0] || "50"; // Default per docs
-  const rotation = fields.rotation?.[0] || "0"; // Default no rotation
+  const opacity = parseFloat(fields.opacity?.[0] || "0.3"); // 0-1, default 0.3
+  const font_size = parseInt(fields.font_size?.[0] || "50", 10); // Default 50
+  const rotation = parseInt(fields.rotation?.[0] || "0", 10); // Default 0
   const position = fields.position?.[0] || "middle"; // Default center
+  const font_color = fields.font_color?.[0] || "#FF0000"; // Default red
 
   if (!watermark_text) {
     return res.status(400).json({ error: "Watermark text is required" });
   }
 
-  const publicKey = process.env.ILOVEAPI_PUBLIC_KEY;
-  if (!publicKey) {
-    console.error("Missing ILOVEAPI_PUBLIC_KEY environment variable");
-    return res.status(500).json({ error: "Server configuration error" });
-  }
-  const authHeader = `Bearer ${publicKey}`;
-  console.log("Auth header:", authHeader);
-
   try {
-    // Step 1: Start a new task
-    const startUrl = "https://api.ilovepdf.com/v1/start/watermark";
-    console.log("Starting task with URL:", startUrl);
-    const startResponse = await fetch(startUrl, {
-      method: "GET",
-      headers: { Authorization: authHeader },
-    });
-    const startText = await startResponse.text();
-    console.log("Start response status:", startResponse.status, "Body:", startText);
-    if (!startResponse.ok) {
-      throw new Error(`Start failed: ${startText}`);
-    }
-    const task = startText.trim(); // Task ID as plain text
-    console.log("Task ID:", task);
+    // Load the input PDF
+    const pdfBytes = await fs.readFile(file.filepath);
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    // Step 2: Upload the file
-    const uploadForm = new FormData();
-    uploadForm.append("task", task);
-    uploadForm.append("file", fs.createReadStream(file.filepath), {
-      filename: file.originalFilename || "input.pdf",
-    });
-    const uploadResponse = await fetch("https://api.ilovepdf.com/v1/upload", {
-      method: "POST",
-      headers: { Authorization: authHeader },
-      body: uploadForm as any,
-    });
-    const uploadText = await uploadResponse.text();
-    console.log("Upload response status:", uploadResponse.status, "Body:", uploadText);
-    if (!uploadResponse.ok) {
-      throw new Error(`Upload failed: ${uploadText}`);
-    }
-    const uploadData = JSON.parse(uploadText);
-    const serverFilename = uploadData.server_filename;
-    if (!serverFilename) {
-      throw new Error("Upload response missing server_filename");
-    }
-    console.log("Server filename:", serverFilename);
+    // Parse color (hex to RGB)
+    const r = parseInt(font_color.slice(1, 3), 16) / 255;
+    const g = parseInt(font_color.slice(3, 5), 16) / 255;
+    const b = parseInt(font_color.slice(5, 7), 16) / 255;
 
-    // Step 3: Process the task with watermark parameters
-    const gravityMap: { [key: string]: string } = {
-      middle: "center",
-      "top-left": "top-left",
-      "top-right": "top-right",
-      "middle-left": "left",
-      "middle-right": "right",
-      "bottom-left": "bottom-left",
-      "bottom-right": "bottom-right",
-    };
-    const processForm = new FormData();
-    processForm.append("task", task);
-    processForm.append("server_filename", serverFilename);
-    processForm.append("tool", "watermark"); // Explicitly set tool
-    processForm.append("text", watermark_text);
-    processForm.append("transparency", String(Math.round((1 - Number(opacity)) * 100))); // 0-100
-    processForm.append("font_color", font_color.replace("#", ""));
-    processForm.append("font_size", font_size);
-    processForm.append("rotation", rotation);
-    processForm.append("position", gravityMap[position] || "center");
-    // Additional watermark parameters from docs
-    processForm.append("font_family", "Arial"); // Default per docs
-    processForm.append("font_style", "normal"); // Default
-    processForm.append("layer", "above"); // Default per docs
+    // Watermark all pages
+    const pages = pdfDoc.getPages();
+    for (const page of pages) {
+      const { width, height } = page.getSize();
+      let x: number, y: number;
 
-    const processResponse = await fetch("https://api.ilovepdf.com/v1/process", {
-      method: "POST",
-      headers: { Authorization: authHeader },
-      body: processForm as any,
-    });
-    const processText = await processResponse.text();
-    console.log("Process response status:", processResponse.status, "Body:", processText);
-    if (!processResponse.ok) {
-      throw new Error(`Process failed: ${processText}`);
-    }
-    const processData = JSON.parse(processText);
-    if (!processData.status || processData.status !== "success") {
-      throw new Error("Process did not complete successfully");
+      // Position logic
+      switch (position) {
+        case "top-left":
+          x = 50;
+          y = height - 50;
+          break;
+        case "top-right":
+          x = width - 50;
+          y = height - 50;
+          break;
+        case "middle-left":
+          x = 50;
+          y = height / 2;
+          break;
+        case "middle-right":
+          x = width - 50;
+          y = height / 2;
+          break;
+        case "bottom-left":
+          x = 50;
+          y = 50;
+          break;
+        case "bottom-right":
+          x = width - 50;
+          y = 50;
+          break;
+        case "middle":
+        default:
+          x = width / 2;
+          y = height / 2;
+          break;
+      }
+
+      // Draw watermark
+      page.drawText(watermark_text, {
+        x,
+        y,
+        size: font_size,
+        font,
+        color: rgb(r, g, b),
+        opacity,
+        rotate: degrees(rotation),
+      });
     }
 
-    // Step 4: Download the result
-    const downloadUrl = `https://api.ilovepdf.com/v1/download/${task}`;
-    console.log("Downloading from:", downloadUrl);
-    const downloadResponse = await fetch(downloadUrl, {
-      method: "GET",
-      headers: { Authorization: authHeader },
-    });
-    if (!downloadResponse.ok) {
-      const downloadText = await downloadResponse.text();
-      throw new Error(`Download failed: ${downloadText}`);
-    }
-    const fileBuffer = await downloadResponse.arrayBuffer();
-    console.log("Download response status:", downloadResponse.status, "Size:", fileBuffer.byteLength);
-
+    // Save and send the watermarked PDF
+    const watermarkedBytes = await pdfDoc.save();
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename=watermarked_${file.originalFilename || "output.pdf"}`);
-    res.send(Buffer.from(fileBuffer));
-  } catch (error) {
-    console.error("API error:", error);
-    let errorMessage = "Failed to process watermark";
-    if (error instanceof Error && error.message.includes("rate limit")) {
-      errorMessage = "API rate limit exceeded. Please try again later.";
-      res.status(429); // Too Many Requests
-    } else if (error instanceof Error) {
-      errorMessage += `: ${error.message}`;
-    }
-    return res.status(500).json({ error: errorMessage });
+    res.send(Buffer.from(watermarkedBytes));
+  } catch (error: unknown) {
+    console.error("PDF watermarking error:", error);
+    // Safely handle the error type
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    res.status(500).json({ error: `Failed to process watermark: ${errorMessage}` });
   }
 }
 
