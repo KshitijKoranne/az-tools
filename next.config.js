@@ -14,4 +14,4 @@ if (process.env.NEXT_PUBLIC_TEMPO) {
   };
 }
 
-module.exports = nextConfig;
+export default nextConfig; // Changed from module.exports to export default
