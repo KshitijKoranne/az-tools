@@ -21,7 +21,6 @@ export default function Page() {
         </div>
       </main>
       <Footer />
-      {/* Removed <MobileNav /> */}
     </div>
   );
 }

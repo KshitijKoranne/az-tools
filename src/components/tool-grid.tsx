@@ -84,6 +84,13 @@ const toolCategories: ToolCategory[] = [
         href: "/tools/pdf-metadata",
         color: "bg-red-500/10",
       },
+      {
+        title: "PDF Redact",
+        description: "Permanently redact sensitive areas in PDF files",
+        icon: File,
+        href: "/tools/pdf-redact",
+        color: "bg-red-500/10",
+      },
     ],
   },
   {

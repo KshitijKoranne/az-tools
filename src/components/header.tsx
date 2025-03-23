@@ -25,6 +25,7 @@ export function Header() {
     { title: "PDF Encrypt", href: "/tools/pdf-encrypt" },
     { title: "PDF Rotate", href: "/tools/pdf-rotate" },
     { title: "PDF Metadata Editor", href: "/tools/pdf-metadata" },
+    { title: "PDF Redact", href: "/tools/pdf-redact" },
 
     // Conversion Tools
     { title: "Image Converter", href: "/tools/image-converter" },

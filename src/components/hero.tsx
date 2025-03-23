@@ -8,14 +8,13 @@ export function Hero() {
       <Container>
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="inline-block p-2 px-4 bg-primary/10 rounded-full text-primary font-medium text-sm mb-4">
-            Free & Mobile-Optimized
+            Free & No Login Required
           </div>
           <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl colorful:bg-clip-text colorful:text-transparent colorful:bg-gradient-to-r colorful:from-primary colorful:via-secondary colorful:to-accent">
-            Free Utility Tools for Everyday Tasks
+            Your One Stop for all handy tools
           </h1>
           <p className="text-xl text-muted-foreground max-w-[700px]">
-            A collection of free, mobile-optimized tools for PDF manipulation,
-            format conversions, and more.
+          Empower your daily tasks with our curated suite of free, efficient tools—no sign-up required.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 mt-4">
             <a href="#tools-section" className="inline-block">

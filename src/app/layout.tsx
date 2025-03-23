@@ -8,9 +8,9 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AZ-Tools - Mobile-Optimized Utility Toolkit",
+  title: "AZ-Tools - A free and handy Utility Toolkit",
   description:
-    "Free, no-login utility tools for everyday tasks like PDF manipulation, format conversions, and calculations - all optimized for mobile use.",
+    "Free, no-login utility tools for everyday tasks like PDF manipulation, format conversions, calculations and much more - all optimized for mobile use too.",
 };
 
 export default function RootLayout({
