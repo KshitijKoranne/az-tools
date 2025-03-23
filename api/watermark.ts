@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   });
 
-  const file = files.file?.[0]; // Get the uploaded file
+  const file = files.file?.[0];
   if (!file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
@@ -36,7 +36,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     // Step 1: Start a new task
-    const startResponse = await fetch("https://api.iloveapi.com/v1/task", {
+    const startResponse = await fetch("https://api.ilovepdf.com/v1/task", {
       method: "POST",
       headers: {
         Authorization: authHeader,
@@ -50,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Step 2: Upload the file
     const uploadForm = new FormData();
     uploadForm.append("file", fs.createReadStream(file.filepath), { filename: file.originalFilename || "input.pdf" });
-    const uploadResponse = await fetch(`https://api.iloveapi.com/v1/upload/${task_id}`, {
+    const uploadResponse = await fetch(`https://api.ilovepdf.com/v1/upload/${task_id}`, {
       method: "POST",
       headers: { Authorization: authHeader },
       body: uploadForm as any,
@@ -80,7 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       rotation: Number(rotation),
       gravity: gravityMap[position || "middle"] || "Center",
     };
-    const processResponse = await fetch(`https://api.iloveapi.com/v1/process/${task_id}`, {
+    const processResponse = await fetch(`https://api.ilovepdf.com/v1/process/${task_id}`, {
       method: "POST",
       headers: {
         Authorization: authHeader,
@@ -107,6 +107,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
 export const config = {
   api: {
-    bodyParser: false, // Disable default body parsing to handle multipart/form-data manually
+    bodyParser: false,
   },
 };
