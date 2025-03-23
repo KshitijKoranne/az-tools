@@ -32,20 +32,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "Watermark text is required" });
   }
 
-  const authHeader = `Bearer ${process.env.ILOVEAPI_PUBLIC_KEY}`;
+  const publicKey = process.env.ILOVEAPI_PUBLIC_KEY;
+  const authHeader = `Bearer ${publicKey}`;
+  console.log("Public key:", publicKey);
+  console.log("Auth header:", authHeader);
 
   try {
-    // Step 1: Start a new task
-    const startResponse = await fetch("https://api.ilovepdf.com/v1/start/watermark", {
+    // Step 1: Start a new task (simplified)
+    const startUrl = "https://api.ilovepdf.com/v1/start/watermark";
+    console.log("Start request URL:", startUrl);
+    const startResponse = await fetch(startUrl, {
       method: "GET",
       headers: {
         Authorization: authHeader,
+        "Accept": "text/plain",
       },
     });
     const startText = await startResponse.text();
-    console.log("Start response:", startResponse.status, startText);
+    console.log("Start response status:", startResponse.status);
+    // Log headers using forEach instead of spread
+    const headersObj: Record<string, string> = {};
+    startResponse.headers.forEach((value, key) => {
+      headersObj[key] = value;
+    });
+    console.log("Start response headers:", JSON.stringify(headersObj));
+    console.log("Start response body:", startText);
     if (!startResponse.ok) throw new Error(startText);
-    const task = startText; // Response is just the task ID as plain text
+    const task = startText.trim();
 
     // Step 2: Upload the file
     const uploadForm = new FormData();
@@ -76,7 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     processForm.append("task", task);
     processForm.append("server_filename", serverFilename);
     processForm.append("text", watermark_text);
-    processForm.append("transparency", String(Math.round((1 - Number(opacity)) * 100))); // 0-100, 0 = opaque
+    processForm.append("transparency", String(Math.round((1 - Number(opacity)) * 100)));
     processForm.append("font_color", font_color?.replace("#", ""));
     processForm.append("font_size", font_size);
     processForm.append("rotation", rotation);
